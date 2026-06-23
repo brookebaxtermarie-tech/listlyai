@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colours — Sprint 5 brand */
+  --color-page:         #F8F9FA;
+  --color-card:         #FFFFFF;
+  --color-line:         #E5E7EB;
+  --color-ink:          #1E2022;
+  --color-muted:        #6B7280;
+  --color-accent:       #00C47A;   /* softer mint — dense UI */
+  --color-accent-bold:  #00E699;   /* full-saturation mint — marketing/landing */
+  --color-accent-dark:  #009960;   /* pressed/hover state */
+
+  /* Platform accents (desaturated, for left-border use) */
+  --color-ebay:         #5B8DB8;
+  --color-vinted:       #4A9E8E;
+  --color-depop:        #C47A7A;
+  --color-leboncoin:    #C49A5B;
+  --color-kleinanzeigen: #8EA85B;
+  --color-wallapop:     #5B9EA8;
+  --color-allegro:      #C4725B;
+
+  /* Typography */
+  --font-sans:   var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+  --font-header: var(--font-jakarta, ui-sans-serif, system-ui, sans-serif);
+  --font-mono:   ui-monospace, monospace;
+}
+
+body {
+  background-color: #F8F9FA;
+  color: #1E2022;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
