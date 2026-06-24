@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, KeyboardEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Suspense } from 'react'
-import AppShell from '@/components/AppShell'
+import AppShell, { PlatformLogo } from '@/components/AppShell'
 
 interface ListingData {
   gender: string
@@ -64,6 +64,7 @@ const PLATFORMS = [
   { id: 'vinted',        label: 'Vinted',        color: '#007782' },
   { id: 'depop',         label: 'Depop',         color: '#FF4040' },
   { id: 'poshmark',      label: 'Poshmark',      color: '#C4375E' },
+  { id: 'mercari',       label: 'Mercari',       color: '#FF0211' },
   { id: 'leboncoin',     label: 'Leboncoin',     color: '#F56B2A' },
   { id: 'wallapop',      label: 'Wallapop',      color: '#13C1AC' },
   { id: 'kleinanzeigen', label: 'Kleinanzeigen', color: '#C4161C' },
@@ -141,6 +142,7 @@ function ReviewPageInner() {
   const [descriptions, setDescriptions] = useState<Record<string, string>>({})
 
   // UI state
+  const [activePlatform, setActivePlatform] = useState<string | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [moreDetailsOpen, setMoreDetailsOpen] = useState(false)
   const [copied, setCopied] = useState<Record<string, boolean>>({})
@@ -170,6 +172,7 @@ function ReviewPageInner() {
     setConditionChip(CONDITION_GRADE_MAP[data.condition_grade ?? ''] ?? 'Good')
     setTags(data.tags ?? [])
     setDescriptions(data.descriptions ?? {})
+    setActivePlatform(platformList[0] ?? null)
     setLoadState('ready')
   }
 
@@ -567,22 +570,75 @@ function ReviewPageInner() {
             <div className="lg:hidden flex flex-col gap-3">
               <Label>Platform descriptions</Label>
               {selectedPlatforms.map(p => (
-                <PlatformCard key={p.id} platform={p} title={title} description={descriptions[p.id] ?? ''} copied={!!copied[p.id]} onCopy={() => copyPlatform(p.id, p.label)} onChange={v => setDescriptions(prev => ({ ...prev, [p.id]: v }))} />
+                <PlatformCard key={p.id} platform={p} title={title} description={descriptions[p.id] ?? ''} copied={!!copied[p.id]} onCopy={() => copyPlatform(p.id, p.label)} onChange={v => setDescriptions(prev => ({ ...prev, [p.id]: v }))} PlatformLogoComp={PlatformLogo} />
               ))}
             </div>
           )}
         </div>
 
-        {/* ════ RIGHT COLUMN — platform output deck ════ */}
+        {/* ════ RIGHT COLUMN — platform tabs + active editor ════ */}
         {selectedPlatforms.length > 0 && (
-          <div className="hidden lg:flex flex-col gap-4 p-4 lg:p-5 lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted uppercase tracking-wider">Platform descriptions</p>
-              <button onClick={copyAll} className="text-xs font-medium text-muted hover:text-ink transition-colors">Copy all</button>
+          <div className="hidden lg:flex flex-col lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)]">
+            {/* Tab strip */}
+            <div className="flex items-center gap-1 px-3 pt-3 pb-2 border-b border-line overflow-x-auto">
+              {selectedPlatforms.map(p => {
+                const isActive = activePlatform === p.id
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setActivePlatform(p.id)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg flex-shrink-0 transition-all"
+                    style={{
+                      background: isActive ? `${p.color}12` : 'transparent',
+                      borderBottom: isActive ? `2px solid ${p.color}` : '2px solid transparent',
+                    }}
+                  >
+                    <PlatformLogo id={p.id} type="icon" size={16} />
+                    <span className="text-xs font-semibold" style={{ color: isActive ? p.color : '#6B7280' }}>
+                      {p.label}
+                    </span>
+                  </button>
+                )
+              })}
+              <button onClick={copyAll} className="ml-auto text-xs font-medium text-muted hover:text-ink transition-colors flex-shrink-0 px-2">
+                Copy all
+              </button>
             </div>
-            {selectedPlatforms.map(p => (
-              <PlatformCard key={p.id} platform={p} title={title} description={descriptions[p.id] ?? ''} copied={!!copied[p.id]} onCopy={() => copyPlatform(p.id, p.label)} onChange={v => setDescriptions(prev => ({ ...prev, [p.id]: v }))} />
-            ))}
+
+            {/* Active platform editor */}
+            {activePlatform && (() => {
+              const p = selectedPlatforms.find(x => x.id === activePlatform)
+              if (!p) return null
+              return (
+                <div className="flex flex-col flex-1 overflow-hidden" style={{ borderLeft: `3px solid ${p.color}` }}>
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-line">
+                    <div className="flex items-center gap-2">
+                      <PlatformLogo id={p.id} type="logo" size={20} />
+                    </div>
+                    <button
+                      onClick={() => copyPlatform(p.id, p.label)}
+                      className="rounded-lg text-xs font-semibold px-4 transition-all"
+                      style={{
+                        minHeight: 34,
+                        background: copied[p.id] ? '#D1FAE5' : p.color,
+                        color: copied[p.id] ? '#065F46' : '#FFFFFF',
+                      }}
+                    >
+                      {copied[p.id] ? 'Copied ✓' : 'Copy Details'}
+                    </button>
+                  </div>
+                  {title && (
+                    <p className="px-4 py-2 text-xs font-medium text-muted truncate border-b border-line">{title}</p>
+                  )}
+                  <textarea
+                    value={descriptions[p.id] ?? ''}
+                    onChange={e => setDescriptions(prev => ({ ...prev, [p.id]: e.target.value }))}
+                    className="flex-1 w-full px-4 py-3 bg-card text-ink text-sm leading-relaxed focus:outline-none resize-none placeholder:text-muted"
+                    placeholder={`${p.label} description…`}
+                  />
+                </div>
+              )
+            })()}
           </div>
         )}
 
@@ -639,13 +695,14 @@ function ReviewPageInner() {
   )
 }
 
-function PlatformCard({ platform, title, description, copied, onCopy, onChange }: {
+function PlatformCard({ platform, title, description, copied, onCopy, onChange, PlatformLogoComp }: {
   platform: { id: string; label: string; color: string }
   title: string
   description: string
   copied: boolean
   onCopy: () => void
   onChange: (v: string) => void
+  PlatformLogoComp: typeof PlatformLogo
 }) {
   return (
     <div
@@ -654,9 +711,7 @@ function PlatformCard({ platform, title, description, copied, onCopy, onChange }
     >
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-line">
-        <span className="font-bold text-base text-ink leading-none" style={{ fontFamily: 'var(--font-header)' }}>
-          {platform.label}
-        </span>
+        <PlatformLogoComp id={platform.id} type="logo" size={20} />
         <button
           onClick={onCopy}
           className="flex-shrink-0 rounded-lg text-xs font-semibold px-4 transition-all"

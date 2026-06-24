@@ -26,6 +26,7 @@ const PLATFORM_META: Record<string, { label: string; color: string }> = {
   vinted:        { label: 'Vinted',        color: '#007782' },
   depop:         { label: 'Depop',         color: '#FF4040' },
   poshmark:      { label: 'Poshmark',      color: '#C4375E' },
+  mercari:       { label: 'Mercari',       color: '#FF0211' },
   leboncoin:     { label: 'Leboncoin',     color: '#F56B2A' },
   wallapop:      { label: 'Wallapop',      color: '#13C1AC' },
   kleinanzeigen: { label: 'Kleinanzeigen', color: '#C4161C' },

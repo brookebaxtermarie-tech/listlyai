@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import AppShell from '@/components/AppShell'
+import AppShell, { PlatformLogo } from '@/components/AppShell'
 import { Suspense } from 'react'
 
 type Plan = 'FREE' | 'PRO' | 'POWER'
@@ -21,6 +21,7 @@ const PLATFORMS = [
   { id: 'vinted',        label: 'Vinted',        color: '#007782' },
   { id: 'depop',         label: 'Depop',         color: '#FF4040' },
   { id: 'poshmark',      label: 'Poshmark',      color: '#C4375E' },
+  { id: 'mercari',       label: 'Mercari',       color: '#FF0211' },
   { id: 'leboncoin',     label: 'Leboncoin',     color: '#F56B2A' },
   { id: 'wallapop',      label: 'Wallapop',      color: '#13C1AC' },
   { id: 'kleinanzeigen', label: 'Kleinanzeigen', color: '#C4161C' },
@@ -669,41 +670,37 @@ function ListPageInner() {
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {PLATFORMS.map(p => {
                   const active = platforms.includes(p.id)
                   const atLimit = plan === 'FREE' && !active && platforms.length >= FREE_PLATFORM_LIMIT
-                  const color = p.color
                   return (
                     <button
                       key={p.id}
                       onClick={() => !atLimit && togglePlatform(p.id)}
                       disabled={atLimit}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border bg-card transition-all text-left"
+                      className="flex flex-col gap-2 p-3 rounded-xl border bg-card transition-all text-left"
                       style={{
-                        borderColor: active ? color : '#E5E7EB',
-                        borderLeft: `4px solid ${active ? color : '#E5E7EB'}`,
-                        opacity: atLimit ? 0.4 : 1,
+                        borderColor: active ? p.color : '#E5E7EB',
+                        borderLeft: `3px solid ${active ? p.color : '#E5E7EB'}`,
+                        opacity: atLimit ? 0.35 : 1,
                         cursor: atLimit ? 'not-allowed' : 'pointer',
+                        background: active ? `${p.color}08` : '#FFFFFF',
                       }}
                     >
-                      <span
-                        className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold"
-                        style={{ background: p.color, fontSize: 10 }}
-                      >
-                        {p.label.charAt(0)}
-                      </span>
-                      <span className="text-sm font-medium text-ink flex-1">{p.label}</span>
-                      {/* Toggle */}
-                      <span
-                        className="w-10 h-6 rounded-full flex items-center transition-all flex-shrink-0"
-                        style={{ background: active ? color : '#E5E7EB', padding: '2px' }}
-                      >
+                      <div className="flex items-center justify-between">
+                        <PlatformLogo id={p.id} type="icon" size={28} />
                         <span
-                          className="w-5 h-5 rounded-full bg-white shadow-sm transition-transform"
-                          style={{ transform: active ? 'translateX(16px)' : 'translateX(0)' }}
-                        />
-                      </span>
+                          className="w-9 h-5 rounded-full flex items-center flex-shrink-0"
+                          style={{ background: active ? p.color : '#E5E7EB', padding: '2px', transition: 'background 0.2s' }}
+                        >
+                          <span
+                            className="w-4 h-4 rounded-full bg-white shadow-sm"
+                            style={{ transform: active ? 'translateX(16px)' : 'translateX(0)', transition: 'transform 0.2s' }}
+                          />
+                        </span>
+                      </div>
+                      <span className="text-xs font-semibold text-ink">{p.label}</span>
                     </button>
                   )
                 })}
