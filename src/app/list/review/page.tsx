@@ -641,7 +641,7 @@ function ReviewPageInner() {
                     }}
                   >
                     <div className="flex items-center gap-1.5">
-                      <PlatformLogo id={p.id} type="logo" size={14} />
+                      <PlatformLogo id={p.id} type="icon" size={20} />
                     </div>
                     <span className="text-[10px] text-muted mt-0.5 whitespace-nowrap">{tabSub}</span>
                   </button>

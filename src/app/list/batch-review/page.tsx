@@ -551,7 +551,7 @@ function PlatformEditor({ item, platforms, onChange }: {
             <button key={p.id} onClick={() => setActivePlatform(p.id)}
               className="flex flex-col items-start px-3 py-2.5 flex-shrink-0 border-b-2 transition-all"
               style={{ borderBottomColor: isActive ? p.color : 'transparent', background: isActive ? '#FDFBF8' : 'transparent', minWidth: 80 }}>
-              <PlatformLogo id={p.id} type="logo" size={14} />
+              <PlatformLogo id={p.id} type="icon" size={20} />
               <span className="text-[10px] text-muted mt-0.5 whitespace-nowrap">{tabSub}</span>
             </button>
           )
