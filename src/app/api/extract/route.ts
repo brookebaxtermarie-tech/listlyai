@@ -16,16 +16,24 @@ export async function POST(req: NextRequest) {
     .single();
   const plan = profile?.plan ?? "FREE";
 
+  const ALLOWED_PLATFORMS = new Set(["ebay","vinted","depop","poshmark","mercari","leboncoin","wallapop","kleinanzeigen","allegro"]);
   const formData = await req.formData();
   const file = formData.get("image") as File;
   const platformsRaw = formData.get("platforms") as string;
-  const platforms = platformsRaw ? JSON.parse(platformsRaw) : ["ebay", "vinted", "depop"];
+  let parsedPlatforms: unknown;
+  try { parsedPlatforms = platformsRaw ? JSON.parse(platformsRaw) : null; } catch { parsedPlatforms = null; }
+  const platforms = Array.isArray(parsedPlatforms)
+    ? parsedPlatforms.filter((p): p is string => typeof p === "string" && ALLOWED_PLATFORMS.has(p)).slice(0, 9)
+    : ["ebay", "vinted", "depop"];
+  if (platforms.length === 0) {
+    return NextResponse.json({ error: "No valid platforms selected" }, { status: 400 });
+  }
 
   if (!file) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
 
-  const imgCheck = validateImage(file, plan);
+  const imgCheck = await validateImage(file, plan);
   if (!imgCheck.valid) {
     return NextResponse.json({ error: imgCheck.reason }, { status: 400 });
   }
@@ -43,6 +51,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: e.message, retryAfterSeconds: e.retryAfterSeconds },
         { status: 429, headers: { "Retry-After": String(e.retryAfterSeconds) } }
+      );
+    }
+    if (e.code === "CONTENT_REJECTED") {
+      return NextResponse.json(
+        { error: "This image couldn't be analysed. Please upload a photo of a clothing item or accessory." },
+        { status: 422 }
       );
     }
     console.error('[extract] extraction error:', e.message ?? err);

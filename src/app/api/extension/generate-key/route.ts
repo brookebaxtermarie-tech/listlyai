@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 
 function generateApiKey(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(24));
   const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
   return `listai_${hex}`;
+}
+
+function hashApiKey(key: string): string {
+  return createHash("sha256").update(key).digest("hex");
 }
 
 export async function GET() {
@@ -14,12 +19,13 @@ export async function GET() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("extension_api_key, plan")
+    // Only check whether a hash exists — never return the plaintext key or hash to the client
+    .select("extension_api_key_hash, plan")
     .eq("id", user.id)
     .single();
 
   return NextResponse.json({
-    key: profile?.extension_api_key ?? null,
+    hasKey: profile?.extension_api_key_hash != null,
     plan: profile?.plan ?? "FREE",
   });
 }
@@ -42,7 +48,8 @@ export async function POST() {
   const newKey = generateApiKey();
   const { error } = await supabase
     .from("profiles")
-    .update({ extension_api_key: newKey })
+    // Store only the hash. The plaintext key is returned to the user once and never persisted.
+    .update({ extension_api_key_hash: hashApiKey(newKey) })
     .eq("id", user.id);
 
   if (error) return NextResponse.json({ error: "Failed to generate key" }, { status: 500 });
@@ -57,8 +64,9 @@ export async function DELETE() {
 
   await supabase
     .from("profiles")
-    .update({ extension_api_key: null })
+    .update({ extension_api_key_hash: null })
     .eq("id", user.id);
 
   return NextResponse.json({ ok: true });
 }
+

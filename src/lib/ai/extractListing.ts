@@ -16,20 +16,26 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const LIMITS = {
   FREE: {
-    extractionsPerDay: 10,       // 10 listings/day free
-    extractionsPerHour: 5,       // burst protection
-    maxImageSizeBytes: 5_242_880, // 5MB
-    maxTokensPerRequest: 1200,   // pass 1 + pass 2 combined cap
+    extractionsPerDay: 10,
+    extractionsPerHour: 5,
+    maxImageSizeBytes: 5_242_880,
+    maxTokensPerRequest: 1200,
   },
   PRO: {
     extractionsPerDay: 200,
     extractionsPerHour: 30,
-    maxImageSizeBytes: 10_485_760, // 10MB
+    maxImageSizeBytes: 10_485_760,
+    maxTokensPerRequest: 1500,
+  },
+  POWER: {
+    extractionsPerDay: 1000,
+    extractionsPerHour: 100,
+    maxImageSizeBytes: 10_485_760,
     maxTokensPerRequest: 1500,
   },
 } as const;
 
-type Plan = "FREE" | "PRO";
+type Plan = "FREE" | "PRO" | "POWER";
 
 interface RateLimitResult {
   allowed: boolean;
@@ -124,13 +130,12 @@ interface ImageValidationResult {
   reason?: string;
 }
 
-export function validateImage(
+export async function validateImage(
   file: File,
   plan: Plan
-): ImageValidationResult {
+): Promise<ImageValidationResult> {
   const limits = LIMITS[plan];
 
-  // Size check
   if (file.size > limits.maxImageSizeBytes) {
     return {
       valid: false,
@@ -138,12 +143,25 @@ export function validateImage(
     };
   }
 
-  // Type check — only real image formats
   const allowed = ["image/jpeg", "image/png", "image/webp"];
   if (!allowed.includes(file.type)) {
     return {
       valid: false,
       reason: `Unsupported format. Please upload a JPG, PNG, or WEBP image.`,
+    };
+  }
+
+  // Magic byte check — file.type is user-supplied and cannot be trusted alone.
+  // Read the first 12 bytes of the actual file content and verify the signature.
+  const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const isJpeg = header[0] === 0xFF && header[1] === 0xD8 && header[2] === 0xFF;
+  const isPng  = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47;
+  const isWebp = header[8] === 0x57 && header[9] === 0x45 && header[10] === 0x42 && header[11] === 0x50;
+
+  if (!isJpeg && !isPng && !isWebp) {
+    return {
+      valid: false,
+      reason: "File content does not match a supported image format.",
     };
   }
 
@@ -530,9 +548,17 @@ export async function extractListing(
   });
 
   const pass1Text = (pass1.content[0] as { type: "text"; text: string }).text.trim();
-  const pass1Data = JSON.parse(pass1Text.replace(/^```json\s*/i, "").replace(/```\s*$/, ""));
-
-  const { gender, category, photo_quality, photo_issue, photo_fix } = pass1Data;
+  let pass1Raw: Record<string, unknown>;
+  try {
+    pass1Raw = JSON.parse(pass1Text.replace(/^```json\s*/i, "").replace(/```\s*$/, ""));
+  } catch {
+    throw new Error("Pass 1 returned invalid JSON");
+  }
+  const gender = pass1Raw.gender as string;
+  const category = pass1Raw.category as string;
+  const photo_quality = pass1Raw.photo_quality as "good" | "needs_second_photo" | "needs_retake";
+  const photo_issue = (pass1Raw.photo_issue as string | null) ?? null;
+  const photo_fix = (pass1Raw.photo_fix as string | null) ?? null;
 
   // ── Photo quality gate: hard stop on unusable images ──────
   if (photo_quality === "needs_retake") {
@@ -569,18 +595,53 @@ export async function extractListing(
   });
 
   const pass2Text = (pass2.content[0] as { type: "text"; text: string }).text.trim();
-  const pass2Data = JSON.parse(pass2Text.replace(/^```json\s*/i, "").replace(/```\s*$/, ""));
+  let pass2Data: Record<string, unknown>;
+  try {
+    pass2Data = JSON.parse(pass2Text.replace(/^```json\s*/i, "").replace(/```\s*$/, ""));
+  } catch {
+    // Claude refused to analyse this image (NSFW, safety policy, etc.)
+    const lowerText = pass2Text.toLowerCase();
+    const isRefusal = lowerText.includes("i can't") || lowerText.includes("i cannot") ||
+      lowerText.includes("unable to") || lowerText.includes("inappropriate") ||
+      lowerText.includes("explicit") || lowerText.includes("policy");
+    throw Object.assign(new Error("Pass 2 returned invalid JSON"), {
+      code: isRefusal ? "CONTENT_REJECTED" : "PARSE_ERROR",
+    });
+  }
 
   // ── Increment usage only after both passes succeed ────────
   await incrementUsage(userId);
 
+  // Explicit field picking — never spread Claude output directly onto the return object.
+  // Prevents prototype pollution if Claude returns __proto__ or constructor keys.
   return {
     gender,
     category,
     photo_quality,
-    photo_issue: photo_issue === "null" ? null : photo_issue,
-    photo_fix: photo_fix === "null" ? null : photo_fix,
-    ...pass2Data,
+    photo_issue: photo_issue === "null" ? null : (photo_issue ?? null),
+    photo_fix: photo_fix === "null" ? null : (photo_fix ?? null),
+    garment_type:          String(pass2Data.garment_type ?? ""),
+    neckline:              pass2Data.neckline != null ? String(pass2Data.neckline) : null,
+    sleeve_type:           pass2Data.sleeve_type != null ? String(pass2Data.sleeve_type) : null,
+    silhouette:            Array.isArray(pass2Data.silhouette) ? (pass2Data.silhouette as string[]) : [],
+    brand:                 pass2Data.brand != null ? String(pass2Data.brand) : null,
+    brand_confidence:      (pass2Data.brand_confidence as "confirmed" | "likely" | "unknown") ?? "unknown",
+    brand_source:          pass2Data.brand_source != null ? String(pass2Data.brand_source) : null,
+    color_primary:         String(pass2Data.color_primary ?? ""),
+    color_secondary:       pass2Data.color_secondary != null ? String(pass2Data.color_secondary) : null,
+    pattern:               String(pass2Data.pattern ?? "solid"),
+    size:                  pass2Data.size != null ? String(pass2Data.size) : null,
+    material_apparent:     pass2Data.material_apparent != null ? String(pass2Data.material_apparent) : null,
+    condition_signals:     Array.isArray(pass2Data.condition_signals) ? (pass2Data.condition_signals as string[]) : [],
+    condition_grade:       String(pass2Data.condition_grade ?? "Good"),
+    condition_confidence:  (pass2Data.condition_confidence as "high" | "medium" | "low") ?? "low",
+    condition_needs_review: Boolean(pass2Data.condition_needs_review),
+    title:                 String(pass2Data.title ?? ""),
+    suggested_price_eur:   Number(pass2Data.suggested_price_eur ?? 0),
+    tags:                  Array.isArray(pass2Data.tags) ? (pass2Data.tags as string[]) : [],
+    descriptions:          (typeof pass2Data.descriptions === "object" && pass2Data.descriptions !== null)
+                             ? (pass2Data.descriptions as Record<string, string>) : {},
+    overall_confidence:    Number(pass2Data.overall_confidence ?? 0),
   };
 }
 

@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -7,13 +8,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing or invalid API key" }, { status: 401 });
   }
   const apiKey = auth.slice(7);
+  const keyHash = createHash("sha256").update(apiKey).digest("hex");
 
   const supabase = createServiceClient();
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id")
-    .eq("extension_api_key", apiKey)
+    .eq("extension_api_key_hash", keyHash)
     .single();
 
   if (profileError || !profile) {
