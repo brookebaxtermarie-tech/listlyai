@@ -292,6 +292,8 @@ When adding a new table, always:
 |---|---|
 | Task 1 — Scaffold + Supabase auth | ✅ Done |
 | Task 2 — Claude Vision extraction prompt | ✅ Done |
-| Task 3 — Upload + Review UI (`/list`, `/list/review`) | 🔄 In progress |
-| Task 4 — Saved listings dashboard | ⬜ Not started |
-| Task 5 — eBay integration | ⬜ Not started |nt
+| Task 3 — Upload + Review UI (`/list`, `/list/review`, `/list/batch-review`) | ✅ Done |
+| Task 4 — Saved listings dashboard (free paywall, image thumbnails) | ✅ Done |
+| Task 5 — Resend SMTP wiring (email confirm) | ⬜ Not started |
+| Task 6 — Stripe env vars in Vercel | ⬜ Not started |
+| Task 7 — eBay OAuth + direct publish (Pro tier) | ⬜ Not started |
