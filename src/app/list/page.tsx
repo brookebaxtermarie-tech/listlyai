@@ -516,11 +516,7 @@ function ListPageInner() {
         {loading ? (
           <div className="md:col-span-2">
           <LoadingSkeleton
-            message={
-              batchProgress
-                ? `Analysing ${batchProgress.done} of ${batchProgress.total} photos…`
-                : undefined
-            }
+            message={batchProgress ? `Analysing photo ${batchProgress.done + 1} of ${batchProgress.total}…` : undefined}
           />
           </div>
         ) : (

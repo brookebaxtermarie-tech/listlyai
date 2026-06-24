@@ -393,26 +393,6 @@ function ReviewForm({ item, onChange }: {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Photo */}
-      <div className="bg-card rounded-xl border border-line overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={item.preview} alt="Item" className="w-full object-cover" style={{ maxHeight: 300 }} />
-      </div>
-
-      {/* Photo quality warning */}
-      {item.listing && item.listing.photo_quality !== 'good' && (
-        <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: '#FFFBEB', color: '#92400E' }}>
-          <WarningIcon />
-          <p className="text-xs font-medium leading-snug">
-            {item.listing.photo_quality === 'needs_retake' ? "Photo too unclear — check all fields." : 'Some details might be off.'}
-          </p>
-        </div>
-      )}
-      {item.listing && item.listing.overall_confidence < 0.4 && (
-        <div className="rounded-lg px-3 py-2" style={{ background: '#FFFBEB', border: '1px solid #FCD34D' }}>
-          <span className="text-xs" style={{ color: '#92400E' }}>Low confidence — check all fields</span>
-        </div>
-      )}
 
       {/* Title */}
       <div className="bg-card rounded-xl border border-line p-4 flex flex-col gap-1">
@@ -768,9 +748,11 @@ export default function BatchReviewPage() {
             <button onClick={handleNewBatch} className="text-sm text-muted hover:text-ink transition-colors">← New batch</button>
           </div>
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 text-xs text-muted">
-            <span>{approvedCount} approved</span>
-            <span>·</span>
-            <span>{readyCount} remaining</span>
+            <button onClick={() => setActiveIndex(i => Math.max(0, i - 1))} disabled={activeIndex === 0}
+              className="px-2 rounded border border-line hover:border-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ minHeight: 28 }}>←</button>
+            <span>{approvedCount} approved · {readyCount} remaining</span>
+            <button onClick={() => setActiveIndex(i => Math.min(items.length - 1, i + 1))} disabled={activeIndex === items.length - 1}
+              className="px-2 rounded border border-line hover:border-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ minHeight: 28 }}>→</button>
           </div>
           <div className="flex-1 flex justify-end items-center gap-3">
             {saving && <span className="text-xs text-muted">Saving…</span>}
@@ -807,20 +789,43 @@ export default function BatchReviewPage() {
       {/* ── 3-column desktop layout ── */}
       <div className="hidden lg:grid lg:grid-cols-[220px_1fr_380px]" style={{ height: 'calc(100vh - 57px)' }}>
 
-        {/* LEFT — item queue */}
+        {/* LEFT — item queue + active photo */}
         <aside className="flex flex-col border-r border-line bg-card overflow-y-auto">
-          <div className="p-4 flex flex-col gap-2">
-            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">{items.length} photo{items.length !== 1 ? 's' : ''}</p>
+          {/* Active item photo */}
+          <div className="flex-shrink-0">
+            <div className="overflow-hidden border-b border-line" style={{ background: '#F7F4EF' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={activeItem.preview} alt="Active item" className="w-full object-cover" style={{ maxHeight: 260 }} />
+            </div>
+            {/* Photo quality / confidence warnings */}
+            {activeItem.listing && activeItem.listing.photo_quality !== 'good' && (
+              <div className="mx-3 mt-3 rounded-xl p-3 flex items-start gap-2" style={{ background: '#FFFBEB', color: '#92400E' }}>
+                <WarningIcon />
+                <p className="text-xs font-medium leading-snug">
+                  {activeItem.listing.photo_quality === 'needs_retake' ? 'Photo too unclear — check all fields.' : 'Some details might be off.'}
+                </p>
+              </div>
+            )}
+            {activeItem.listing && activeItem.listing.overall_confidence < 0.4 && (
+              <div className="mx-3 mt-2 rounded-lg px-3 py-2" style={{ background: '#FFFBEB', border: '1px solid #FCD34D' }}>
+                <span className="text-xs" style={{ color: '#92400E' }}>Low confidence — check all fields</span>
+              </div>
+            )}
+          </div>
+
+          {/* Queue list */}
+          <div className="p-3 flex flex-col gap-2 flex-1">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider px-1 mb-1">{items.length} photo{items.length !== 1 ? 's' : ''}</p>
             {items.map((item, i) => (
               <button key={item.id} onClick={() => setActiveIndex(i)}
                 className="flex items-center gap-3 rounded-xl p-2.5 text-left transition-all border-2"
                 style={{ borderColor: i === activeIndex ? '#00C47A' : 'transparent', background: i === activeIndex ? '#F0FDF4' : 'transparent' }}>
-                <div className="relative flex-shrink-0 rounded-lg overflow-hidden" style={{ width: 44, height: 44 }}>
+                <div className="relative flex-shrink-0 rounded-lg overflow-hidden" style={{ width: 40, height: 40 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.preview} alt={`Item ${i + 1}`} className="w-full h-full object-cover" />
                   {item.status === 'approved' && (
                     <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(209,250,229,0.8)' }}>
-                      <span style={{ color: '#065F46', fontSize: 14 }}>✓</span>
+                      <span style={{ color: '#065F46', fontSize: 12 }}>✓</span>
                     </div>
                   )}
                 </div>
@@ -833,18 +838,9 @@ export default function BatchReviewPage() {
           </div>
         </aside>
 
-        {/* CENTER — photo + editable fields */}
+        {/* CENTER — editable fields (photo lives in left col) */}
         <main className="overflow-y-auto border-r border-line">
           <div className="px-5 py-5 flex flex-col gap-4" style={{ paddingBottom: '6rem' }}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted">Photo {activeIndex + 1} of {items.length}</span>
-              <div className="flex gap-2">
-                <button onClick={() => setActiveIndex(i => Math.max(0, i - 1))} disabled={activeIndex === 0}
-                  className="px-3 rounded-lg border border-line text-sm text-muted hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ minHeight: 32 }}>← Prev</button>
-                <button onClick={() => setActiveIndex(i => Math.min(items.length - 1, i + 1))} disabled={activeIndex === items.length - 1}
-                  className="px-3 rounded-lg border border-line text-sm text-muted hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ minHeight: 32 }}>Next →</button>
-              </div>
-            </div>
             <ReviewForm key={activeItem.id} item={activeItem} onChange={updateField} />
           </div>
         </main>
@@ -857,6 +853,10 @@ export default function BatchReviewPage() {
 
       {/* Mobile: single-column content */}
       <div className="lg:hidden flex flex-col" style={{ paddingBottom: '5rem' }}>
+        <div className="overflow-hidden border-b border-line">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={activeItem.preview} alt="Active item" className="w-full object-cover" style={{ maxHeight: 280 }} />
+        </div>
         <div className="px-4 py-4 flex flex-col gap-4">
           <ReviewForm key={activeItem.id} item={activeItem} onChange={updateField} />
           <PlatformEditor key={`m-${activeItem.id}`} item={activeItem} platforms={platforms} onChange={updateField} />
