@@ -15,18 +15,23 @@ const STEPS = [
   },
   {
     num: 2,
-    title: 'Generate your API key',
-    desc: 'Use the key generator below. Copy your key — you\'ll paste it into the extension once.',
+    title: 'Pin it to your toolbar',
+    desc: 'After installing, Chrome hides new extensions behind the puzzle piece (🧩) icon in the top right. Click it, find Listly AI, and click the pin icon so it stays visible in your toolbar.',
   },
   {
     num: 3,
-    title: 'Open the extension and connect',
-    desc: 'Click the Listly AI icon in your Chrome toolbar. Tap the settings gear, paste your key, and hit Save.',
+    title: 'Connect your account',
+    desc: 'Generate a connection key below — this is just a password that lets the extension access your listings. You only do this once.',
   },
   {
     num: 4,
+    title: 'Paste it into the extension',
+    desc: 'Click the Listly AI icon in your toolbar. Tap the ⚙️ settings icon, paste your key, and hit Save. You\'re connected.',
+  },
+  {
+    num: 5,
     title: 'Go list something',
-    desc: 'Open Vinted, eBay, or Depop in a new tab. Click the extension — it\'ll auto-detect the platform and show your latest listing ready to paste.',
+    desc: 'Open Vinted, eBay, Depop — any platform — and go to the "Add listing" page. Click the Listly AI icon. Your latest listing appears, already formatted for that platform. Copy and paste each field.',
   },
 ]
 
@@ -191,9 +196,9 @@ export default function ExtensionPage() {
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
                       style={{
-                        background: i === 0 || (i === 1 && !apiKey) || (i === 2 && apiKey) || (i === 3 && apiKey)
+                        background: (i <= 1) || (i === 2 && !apiKey) || (i >= 2 && !!apiKey)
                           ? '#00C47A' : '#E5E7EB',
-                        color: i === 0 || (i === 1 && !apiKey) || (i === 2 && apiKey) || (i === 3 && apiKey)
+                        color: (i <= 1) || (i === 2 && !apiKey) || (i >= 2 && !!apiKey)
                           ? '#fff' : '#6B7280',
                       }}
                     >
@@ -203,7 +208,7 @@ export default function ExtensionPage() {
                       <p className="font-semibold text-sm text-ink mb-1">{step.title}</p>
                       <p className="text-xs text-muted leading-relaxed">{step.desc}</p>
 
-                      {/* Step 1 — Manual install instructions */}
+                      {/* Step 1 — Manual install */}
                       {step.num === 1 && (
                         <div className="mt-3 space-y-3">
                           <a
@@ -228,8 +233,8 @@ export default function ExtensionPage() {
                         </div>
                       )}
 
-                      {/* Step 2 — API key generator */}
-                      {step.num === 2 && (
+                      {/* Step 3 — Connection key generator */}
+                      {step.num === 3 && (
                         <div className="mt-3 space-y-2">
                           {apiKey ? (
                             <div className="space-y-2">
@@ -282,16 +287,16 @@ export default function ExtensionPage() {
                 </h2>
                 <ol className="space-y-4">
                   {[
-                    ['Upload and approve your listings on Listly AI as normal.', ''],
-                    ['Go to the selling platform you want to list on (Vinted, eBay, Depop, etc.) and open the "Add listing" page.', ''],
-                    ['Click the Listly AI icon in your Chrome toolbar. The extension opens and auto-detects the platform you\'re on.', ''],
-                    ['Your most recent listing appears, with the right description already selected for that platform.', ''],
-                    ['Click Copy next to each field — title, price, condition, description — and paste into the form. Or hit "Copy all" to grab everything at once.', ''],
-                    ['Need a different listing? Use the dropdown at the top to switch between your last 10 approved listings.', ''],
-                  ].map(([text], i) => (
+                    'Upload and approve your listings on Listly AI as normal.',
+                    'Go to the selling platform you want to list on (Vinted, eBay, Depop, etc.) and open the "Add listing" page.',
+                    'Click the Listly AI icon in your Chrome toolbar. If you don\'t see it, click the 🧩 puzzle piece icon and find Listly AI there.',
+                    'The extension opens and auto-detects which platform you\'re on. Your most recent listing appears, with the right description already selected.',
+                    'Click Copy next to each field — title, price, condition, description — and paste into the form. Or hit "Copy all" to grab everything at once.',
+                    'Need a different listing? Use the dropdown at the top to switch between your last 10 approved listings.',
+                  ].map((text, i) => (
                     <li key={i} className="flex gap-3 text-sm text-muted leading-relaxed">
                       <span className="font-semibold text-ink flex-shrink-0">{i + 1}.</span>
-                      <span>{text}</span>
+                      <span className="text-muted">{text}</span>
                     </li>
                   ))}
                 </ol>
