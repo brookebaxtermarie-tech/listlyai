@@ -36,7 +36,7 @@ Chill but reliable. Calm confidence.
 - Batch review layout: rebuild `/list/batch-review` with 3-column layout matching single review
 - Smoke test full flow on Vercel (logged out → signup → upload → review → dashboard)
 - Stripe env vars added to Vercel (STRIPE_SECRET_KEY, STRIPE_PRICE_PRO, STRIPE_PRICE_POWER, STRIPE_WEBHOOK_SECRET)
-- Stripe webhook registered in Stripe dashboard pointing to listai-photo.vercel.app/api/stripe/webhook
+- Stripe webhook registered in Stripe dashboard pointing to listlyai-photo.vercel.app/api/stripe/webhook
 - PostHog analytics (post-launch)
 - Sentry error monitoring (post-launch)
 - Mobile test on real Android device
@@ -51,7 +51,7 @@ Chill but reliable. Calm confidence.
 4. Listing stays in Supabase as status: 'draft' until user marks it sold from dashboard
 
 ## Live URL
-listai-photo.vercel.app
+listlyai-photo.vercel.app
 
 ## Tech stack
 - Next.js 16, TypeScript, App Router

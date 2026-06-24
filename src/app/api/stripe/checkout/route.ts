@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const priceId = PRICE_IDS[plan]
   if (!priceId) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
 
-  const origin = req.headers.get('origin') ?? 'https://listai-photo.vercel.app'
+  const origin = req.headers.get('origin') ?? 'https://listlyai-photo.vercel.app'
   const stripe = getStripe()
 
   const session = await stripe.checkout.sessions.create({
