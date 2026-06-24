@@ -295,7 +295,7 @@ export function SidebarQueue({ items, historyItems = [], onAdd, onHistoryClick }
               <QueueThumb src={item.preview} alt={item.name} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate" style={{ color: '#E5E7EB' }}>{item.name}</p>
-                <p className="text-xs mt-0.5" style={{ color: item.status === 'done' ? '#00C47A' : item.status === 'failed' ? '#EF4444' : '#6B7280' }}>
+                <p className="text-xs mt-0.5" style={{ color: item.status === 'done' ? '#00C47A' : item.status === 'failed' ? '#EF4444' : item.status === 'processing' ? '#00C47A' : '#6B7280' }}>
                   {item.status === 'waiting' ? 'Ready' : item.status === 'processing' ? 'Processing…' : item.status === 'done' ? 'Done ✓' : 'Failed'}
                 </p>
               </div>

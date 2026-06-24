@@ -360,18 +360,6 @@ function ReviewForm({ item, onChange }: {
 }) {
   const [tagInput, setTagInput] = useState('')
   const [moreOpen, setMoreOpen] = useState(false)
-  const [copied, setCopied] = useState<Record<string, boolean>>({})
-  const [activePlatform, setActivePlatform] = useState<string | null>(null)
-  const platforms = parsePlatforms()
-  const selectedPlatforms = PLATFORMS.filter(p => platforms.includes(p.id))
-
-  // Init active platform
-  useEffect(() => {
-    if (selectedPlatforms.length > 0 && !activePlatform) {
-      setActivePlatform(selectedPlatforms[0].id)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPlatforms.length])
 
   const brandDotColor = item.listing?.brand_confidence === 'confirmed' ? '#22c55e'
     : item.listing?.brand_confidence === 'likely' ? '#F59E0B' : '#9CA3AF'
@@ -389,15 +377,6 @@ function ReviewForm({ item, onChange }: {
     if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() }
   }
 
-  async function copyPlatform(platformId: string, platformLabel: string) {
-    const limit = PLATFORM_TITLE_LIMITS[platformId]
-    const copyText = limit !== null ? `${item.title}\n\n${item.descriptions[platformId] ?? ''}` : (item.descriptions[platformId] ?? '')
-    await navigator.clipboard.writeText(copyText)
-    setCopied(prev => ({ ...prev, [platformId]: true }))
-    setTimeout(() => setCopied(prev => ({ ...prev, [platformId]: false })), 2000)
-    void platformLabel
-  }
-
   if (item.status === 'failed') {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
@@ -412,14 +391,12 @@ function ReviewForm({ item, onChange }: {
     )
   }
 
-  const activePlatformMeta = selectedPlatforms.find(p => p.id === activePlatform)
-
   return (
     <div className="flex flex-col gap-4">
       {/* Photo */}
       <div className="bg-card rounded-xl border border-line overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={item.preview} alt="Item" className="w-full object-cover" style={{ maxHeight: 320 }} />
+        <img src={item.preview} alt="Item" className="w-full object-cover" style={{ maxHeight: 300 }} />
       </div>
 
       {/* Photo quality warning */}
@@ -427,16 +404,12 @@ function ReviewForm({ item, onChange }: {
         <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: '#FFFBEB', color: '#92400E' }}>
           <WarningIcon />
           <p className="text-xs font-medium leading-snug">
-            {item.listing.photo_quality === 'needs_retake'
-              ? "Photo too unclear — some details couldn't be filled. Check all fields."
-              : 'Some details might be off. A clearer photo would help.'}
+            {item.listing.photo_quality === 'needs_retake' ? "Photo too unclear — check all fields." : 'Some details might be off.'}
           </p>
         </div>
       )}
-
-      {/* Low confidence */}
       {item.listing && item.listing.overall_confidence < 0.4 && (
-        <div className="rounded-lg px-3 py-2 flex items-center gap-2" style={{ background: '#FFFBEB', border: '1px solid #FCD34D' }}>
+        <div className="rounded-lg px-3 py-2" style={{ background: '#FFFBEB', border: '1px solid #FCD34D' }}>
           <span className="text-xs" style={{ color: '#92400E' }}>Low confidence — check all fields</span>
         </div>
       )}
@@ -448,17 +421,12 @@ function ReviewForm({ item, onChange }: {
           <span className={`text-xs ${titleOver ? 'text-red-500' : 'text-muted'}`}>{item.title.length}/60</span>
         </div>
         <textarea
-          value={item.title}
-          onChange={e => onChange('title', e.target.value)}
-          rows={2}
+          value={item.title} onChange={e => onChange('title', e.target.value)} rows={2}
           placeholder="e.g. Nike vintage windbreaker, size M"
-          className={[
-            'w-full px-3 py-2.5 rounded-lg border bg-page text-ink text-sm font-semibold leading-snug focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors placeholder:text-muted placeholder:font-normal resize-none',
-            titleOver ? 'border-red-400' : 'border-line focus:border-accent',
-          ].join(' ')}
+          className={['w-full px-3 py-2.5 rounded-lg border bg-page text-ink text-sm font-semibold leading-snug focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors placeholder:text-muted placeholder:font-normal resize-none', titleOver ? 'border-red-400' : 'border-line focus:border-accent'].join(' ')}
           style={{ fontSize: 15 }}
         />
-        {titleOver && <p className="text-xs text-red-500 mt-0.5">Exceeds 60 characters — some platforms may truncate.</p>}
+        {titleOver && <p className="text-xs text-red-500 mt-0.5">Exceeds 60 characters.</p>}
       </div>
 
       {/* Price */}
@@ -466,48 +434,28 @@ function ReviewForm({ item, onChange }: {
         <FieldLabel>Suggested price</FieldLabel>
         <div className="relative" style={{ width: 140 }}>
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted select-none pointer-events-none font-semibold" style={{ fontSize: 20 }}>€</span>
-          <input
-            type="number" step={0.5} min={0} value={item.price}
-            onChange={e => onChange('price', parseFloat(e.target.value) || 0)}
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-line bg-page text-ink font-semibold focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
-            style={{ fontSize: 20 }}
-          />
+          <input type="number" step={0.5} min={0} value={item.price} onChange={e => onChange('price', parseFloat(e.target.value) || 0)}
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-line bg-page text-ink font-semibold focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors" style={{ fontSize: 20 }} />
         </div>
       </div>
 
-      {/* Brand + core grid */}
+      {/* Brand + grid */}
       <div className="bg-card rounded-xl border border-line p-4 flex flex-col gap-4">
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <FieldLabel>Brand</FieldLabel>
             <span className="flex items-center gap-1.5 text-xs" style={{ color: brandDotColor }}>
-              <span className="w-2 h-2 rounded-full" style={{ background: brandDotColor }} />
-              {brandConfidenceLabel}
+              <span className="w-2 h-2 rounded-full" style={{ background: brandDotColor }} />{brandConfidenceLabel}
             </span>
           </div>
-          <input
-            type="text" value={item.brand} onChange={e => onChange('brand', e.target.value)}
-            placeholder={item.listing?.brand_confidence === 'unknown' ? "Couldn't detect" : 'Brand name'}
-            className={fieldClass()}
-          />
+          <input type="text" value={item.brand} onChange={e => onChange('brand', e.target.value)}
+            placeholder={item.listing?.brand_confidence === 'unknown' ? "Couldn't detect" : 'Brand name'} className={fieldClass()} />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <FieldLabel>Garment type</FieldLabel>
-            <input type="text" value={item.garmentType} onChange={e => onChange('garmentType', e.target.value)} placeholder="e.g. Jacket" className={fieldClass()} />
-          </div>
-          <div>
-            <FieldLabel>Colour</FieldLabel>
-            <input type="text" value={item.colorPrimary} onChange={e => onChange('colorPrimary', e.target.value)} placeholder="Primary colour" className={fieldClass()} />
-          </div>
-          <div>
-            <FieldLabel>Size</FieldLabel>
-            <input type="text" value={item.size} onChange={e => onChange('size', e.target.value)} placeholder="e.g. M, W29 L30" className={fieldClass()} />
-          </div>
-          <div>
-            <FieldLabel>Secondary colour</FieldLabel>
-            <input type="text" value={item.colorSecondary} onChange={e => onChange('colorSecondary', e.target.value)} placeholder="Optional" className={fieldClass()} />
-          </div>
+          <div><FieldLabel>Garment type</FieldLabel><input type="text" value={item.garmentType} onChange={e => onChange('garmentType', e.target.value)} placeholder="e.g. Jacket" className={fieldClass()} /></div>
+          <div><FieldLabel>Colour</FieldLabel><input type="text" value={item.colorPrimary} onChange={e => onChange('colorPrimary', e.target.value)} placeholder="Primary" className={fieldClass()} /></div>
+          <div><FieldLabel>Size</FieldLabel><input type="text" value={item.size} onChange={e => onChange('size', e.target.value)} placeholder="e.g. M, W29 L30" className={fieldClass()} /></div>
+          <div><FieldLabel>Secondary colour</FieldLabel><input type="text" value={item.colorSecondary} onChange={e => onChange('colorSecondary', e.target.value)} placeholder="Optional" className={fieldClass()} /></div>
         </div>
       </div>
 
@@ -518,71 +466,42 @@ function ReviewForm({ item, onChange }: {
           {CONDITION_CHIPS.map(chip => {
             const active = item.conditionChip === chip
             return (
-              <button
-                key={chip}
-                onClick={() => onChange('conditionChip', chip)}
+              <button key={chip} onClick={() => onChange('conditionChip', chip)}
                 className="rounded-lg text-sm font-medium border transition-all"
-                style={{
-                  minHeight: 40,
-                  background: active ? '#00C47A' : '#F8F9FA',
-                  color: active ? '#FFFFFF' : '#6B7280',
-                  borderColor: active ? '#00C47A' : '#E5E7EB',
-                }}
-              >
+                style={{ minHeight: 40, background: active ? '#00C47A' : '#F8F9FA', color: active ? '#FFFFFF' : '#6B7280', borderColor: active ? '#00C47A' : '#E5E7EB' }}>
                 {chip}
               </button>
             )
           })}
         </div>
-        {item.listing?.condition_needs_review && (
-          <p className="text-xs text-muted italic">AI wasn&apos;t sure — tap the condition that looks right</p>
-        )}
+        {item.listing?.condition_needs_review && <p className="text-xs text-muted italic">AI wasn&apos;t sure — pick the right condition</p>}
         {item.listing && item.listing.condition_signals.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">AI spotted</p>
-            <ul className="flex flex-col gap-1.5">
-              {item.listing.condition_signals.map((s, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-ink">
-                  <span className="mt-2 w-1.5 h-1.5 rounded-full bg-muted flex-shrink-0" />
-                  {s}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul className="flex flex-col gap-1.5">
+            {item.listing.condition_signals.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-ink">
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-muted flex-shrink-0" />{s}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
       {/* More details */}
       <div className="bg-card rounded-xl border border-line overflow-hidden">
-        <button
-          onClick={() => setMoreOpen(o => !o)}
-          className="w-full flex items-center justify-between px-4 text-ink hover:bg-page transition-colors"
-          style={{ minHeight: 48 }}
-        >
+        <button onClick={() => setMoreOpen(o => !o)} className="w-full flex items-center justify-between px-4 text-ink hover:bg-page transition-colors" style={{ minHeight: 48 }}>
           <span className="text-sm font-medium">More details</span>
           <span className="text-muted"><ChevronIcon open={moreOpen} /></span>
         </button>
         {moreOpen && (
           <div className="px-4 pb-4 border-t border-line pt-4 grid grid-cols-2 gap-3">
-            <div>
-              <FieldLabel>Pattern</FieldLabel>
-              <select value={item.pattern} onChange={e => onChange('pattern', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg border border-line bg-page text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors appearance-none">
+            <div><FieldLabel>Pattern</FieldLabel>
+              <select value={item.pattern} onChange={e => onChange('pattern', e.target.value)} className="w-full px-3 py-2.5 rounded-lg border border-line bg-page text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors appearance-none">
                 {PATTERNS.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
-            <div>
-              <FieldLabel>Material</FieldLabel>
-              <input type="text" value={item.material} onChange={e => onChange('material', e.target.value)} placeholder="e.g. 100% cotton" className={fieldClass()} />
-            </div>
-            <div>
-              <FieldLabel>Neckline</FieldLabel>
-              <input type="text" value={item.neckline} onChange={e => onChange('neckline', e.target.value)} placeholder="e.g. V-neck" className={fieldClass()} />
-            </div>
-            <div>
-              <FieldLabel>Sleeve type</FieldLabel>
-              <input type="text" value={item.sleeveType} onChange={e => onChange('sleeveType', e.target.value)} placeholder="e.g. Long sleeve" className={fieldClass()} />
-            </div>
+            <div><FieldLabel>Material</FieldLabel><input type="text" value={item.material} onChange={e => onChange('material', e.target.value)} placeholder="e.g. 100% cotton" className={fieldClass()} /></div>
+            <div><FieldLabel>Neckline</FieldLabel><input type="text" value={item.neckline} onChange={e => onChange('neckline', e.target.value)} placeholder="e.g. V-neck" className={fieldClass()} /></div>
+            <div><FieldLabel>Sleeve type</FieldLabel><input type="text" value={item.sleeveType} onChange={e => onChange('sleeveType', e.target.value)} placeholder="e.g. Long sleeve" className={fieldClass()} /></div>
           </div>
         )}
       </div>
@@ -592,111 +511,125 @@ function ReviewForm({ item, onChange }: {
         <FieldLabel>Tags</FieldLabel>
         <div className="flex flex-wrap gap-2 mt-1">
           {item.tags.map(tag => (
-            <button
-              key={tag}
-              onClick={() => onChange('tags', item.tags.filter(t => t !== tag))}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-line text-ink hover:border-red-300 hover:text-red-500 transition-colors"
-            >
+            <button key={tag} onClick={() => onChange('tags', item.tags.filter(t => t !== tag))}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-line text-ink hover:border-red-300 hover:text-red-500 transition-colors">
               {tag} <span className="opacity-40">×</span>
             </button>
           ))}
-          <input
-            type="text" value={tagInput}
-            onChange={e => setTagInput(e.target.value)}
-            onKeyDown={handleTagKey}
-            placeholder="Add tag…"
-            className="px-2.5 py-1 rounded-lg border border-line bg-page text-ink text-xs focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors placeholder:text-muted"
-            style={{ minWidth: 90 }}
-          />
+          <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={handleTagKey}
+            placeholder="Add tag…" className="px-2.5 py-1 rounded-lg border border-line bg-page text-ink text-xs focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors placeholder:text-muted" style={{ minWidth: 90 }} />
         </div>
       </div>
+    </div>
+  )
+}
 
-      {/* Platform descriptions — tabbed editor */}
-      {selectedPlatforms.length > 0 && (
-        <div className="bg-card rounded-xl border border-line overflow-hidden">
-          <FieldLabel>
-            <span className="px-4 pt-4 pb-0 block">Platform descriptions</span>
-          </FieldLabel>
+// ─── Right column: platform tabbed editor ──────────────────────────────────────
 
-          {/* Tabs */}
-          <div className="flex overflow-x-auto border-b border-line" style={{ scrollbarWidth: 'none' }}>
-            {selectedPlatforms.map(p => {
-              const isActive = activePlatform === p.id
-              const limit = PLATFORM_TITLE_LIMITS[p.id]
-              const tabSub = limit === null ? 'No title' : `${item.title.length} / ${limit}`
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setActivePlatform(p.id)}
-                  className="flex flex-col items-start px-3 py-2 flex-shrink-0 border-b-2 transition-all"
-                  style={{
-                    borderBottomColor: isActive ? p.color : 'transparent',
-                    background: isActive ? 'var(--color-page, #F7F4EF)' : 'transparent',
-                    minWidth: 72,
-                  }}
-                >
-                  <PlatformLogo id={p.id} type="logo" size={14} />
-                  <span className="text-[10px] text-muted mt-0.5 whitespace-nowrap">{tabSub}</span>
-                </button>
-              )
-            })}
+function PlatformEditor({ item, platforms, onChange }: {
+  item: BatchItemState
+  platforms: string[]
+  onChange: <K extends keyof BatchItemState>(key: K, value: BatchItemState[K]) => void
+}) {
+  const [activePlatform, setActivePlatform] = useState<string | null>(null)
+  const [copied, setCopied] = useState<Record<string, boolean>>({})
+  const selectedPlatforms = PLATFORMS.filter(p => platforms.includes(p.id))
+
+  useEffect(() => {
+    if (selectedPlatforms.length > 0 && !activePlatform) setActivePlatform(selectedPlatforms[0].id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlatforms.length])
+
+  // Reset active platform when switching items
+  useEffect(() => {
+    if (selectedPlatforms.length > 0) setActivePlatform(selectedPlatforms[0].id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id])
+
+  async function copyPlatform(platformId: string, platformLabel: string) {
+    const limit = PLATFORM_TITLE_LIMITS[platformId]
+    const text = limit !== null ? `${item.title}\n\n${item.descriptions[platformId] ?? ''}` : (item.descriptions[platformId] ?? '')
+    await navigator.clipboard.writeText(text)
+    setCopied(prev => ({ ...prev, [platformId]: true }))
+    setTimeout(() => setCopied(prev => ({ ...prev, [platformId]: false })), 2000)
+    void platformLabel
+  }
+
+  if (selectedPlatforms.length === 0) return null
+
+  const activeMeta = selectedPlatforms.find(p => p.id === activePlatform)
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Tabs */}
+      <div className="flex overflow-x-auto border-b border-line bg-page flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
+        {selectedPlatforms.map(p => {
+          const isActive = activePlatform === p.id
+          const limit = PLATFORM_TITLE_LIMITS[p.id]
+          const tabSub = limit === null ? 'No title' : `${item.title.length} / ${limit}`
+          return (
+            <button key={p.id} onClick={() => setActivePlatform(p.id)}
+              className="flex flex-col items-start px-3 py-2.5 flex-shrink-0 border-b-2 transition-all"
+              style={{ borderBottomColor: isActive ? p.color : 'transparent', background: isActive ? '#FDFBF8' : 'transparent', minWidth: 80 }}>
+              <PlatformLogo id={p.id} type="logo" size={14} />
+              <span className="text-[10px] text-muted mt-0.5 whitespace-nowrap">{tabSub}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Active platform editor */}
+      {activeMeta && (
+        <div className="flex flex-col flex-1 overflow-y-auto" style={{ borderTop: `3px solid ${activeMeta.color}` }}>
+          <div className="flex flex-col gap-4 p-4 flex-1">
+            {PLATFORM_TITLE_LIMITS[activeMeta.id] !== null && (
+              <div className="bg-card rounded-xl border border-line p-3 flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider">Title Editor</p>
+                  <span className={`text-xs ${item.title.length > (PLATFORM_TITLE_LIMITS[activeMeta.id] ?? 999) ? 'text-red-500' : 'text-muted'}`}>
+                    {item.title.length}/{PLATFORM_TITLE_LIMITS[activeMeta.id]}
+                  </span>
+                </div>
+                <textarea
+                  value={item.title}
+                  onChange={e => onChange('title', e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-line bg-page text-ink text-sm font-medium leading-snug focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors resize-none"
+                  placeholder={`${activeMeta.label} title…`}
+                />
+                <p className="text-xs text-muted">{activeMeta.label} Title</p>
+              </div>
+            )}
+
+            <div className="bg-card rounded-xl border border-line p-3 flex flex-col gap-1.5 flex-1">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider">Description Editor</p>
+                <span className="text-xs text-muted">{(item.descriptions[activeMeta.id] ?? '').length}</span>
+              </div>
+              <textarea
+                value={item.descriptions[activeMeta.id] ?? ''}
+                onChange={e => onChange('descriptions', { ...item.descriptions, [activeMeta.id]: e.target.value })}
+                className="w-full flex-1 px-3 py-2 rounded-lg border border-line bg-page text-ink text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors resize-none placeholder:text-muted"
+                style={{ minHeight: 180 }}
+                placeholder={`${activeMeta.label} description…`}
+              />
+              <p className="text-xs text-muted">{activeMeta.label} Description</p>
+            </div>
           </div>
 
-          {/* Active tab content */}
-          {activePlatformMeta && (() => {
-            const p = activePlatformMeta
-            const limit = PLATFORM_TITLE_LIMITS[p.id]
-            const descVal = item.descriptions[p.id] ?? ''
-            return (
-              <div className="flex flex-col gap-3 p-4" style={{ borderTop: `3px solid ${p.color}` }}>
-                {limit !== null && (
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-semibold text-muted uppercase tracking-wider">Title</p>
-                      <span className={`text-xs ${item.title.length > limit ? 'text-red-500' : 'text-muted'}`}>{item.title.length}/{limit}</span>
-                    </div>
-                    <p className="text-sm text-ink font-medium leading-snug px-3 py-2 rounded-lg border border-line bg-page truncate">
-                      {item.title || <span className="text-muted italic">No title yet</span>}
-                    </p>
-                  </div>
-                )}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-semibold text-muted uppercase tracking-wider">Description</p>
-                    <span className="text-xs text-muted">{descVal.length}</span>
-                  </div>
-                  <textarea
-                    value={descVal}
-                    onChange={e => onChange('descriptions', { ...item.descriptions, [p.id]: e.target.value })}
-                    rows={5}
-                    className="w-full px-3 py-2.5 rounded-lg border border-line bg-page text-ink text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors resize-none placeholder:text-muted"
-                    placeholder={`${p.label} description…`}
-                  />
-                </div>
-                <button
-                  onClick={() => copyPlatform(p.id, p.label)}
-                  className="w-full rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-                  style={{
-                    minHeight: 44,
-                    background: copied[p.id] ? '#D1FAE5' : p.color,
-                    color: copied[p.id] ? '#065F46' : '#FFFFFF',
-                  }}
-                >
-                  {copied[p.id] ? (
-                    <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                      Copy {p.label} Details
-                    </>
-                  )}
-                </button>
-              </div>
-            )
-          })()}
+          <div className="px-4 pb-4 flex-shrink-0">
+            <button
+              onClick={() => copyPlatform(activeMeta.id, activeMeta.label)}
+              className="w-full rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+              style={{ minHeight: 48, background: copied[activeMeta.id] ? '#D1FAE5' : activeMeta.color, color: copied[activeMeta.id] ? '#065F46' : '#FFFFFF' }}
+            >
+              {copied[activeMeta.id] ? (
+                <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Copied</>
+              ) : (
+                <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy {activeMeta.label} Details</>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -856,15 +789,9 @@ export default function BatchReviewPage() {
       <div className="lg:hidden bg-card border-b border-line px-4 py-3 overflow-x-auto">
         <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
           {items.map((item, i) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveIndex(i)}
+            <button key={item.id} onClick={() => setActiveIndex(i)}
               className="flex-shrink-0 relative rounded-xl overflow-hidden border-2 transition-all"
-              style={{
-                width: 56, height: 56,
-                borderColor: i === activeIndex ? '#00C47A' : item.status === 'approved' ? '#6EE7B7' : item.status === 'failed' ? '#fca5a5' : '#E8E3DC',
-              }}
-            >
+              style={{ width: 56, height: 56, borderColor: i === activeIndex ? '#00C47A' : item.status === 'approved' ? '#6EE7B7' : item.status === 'failed' ? '#fca5a5' : '#E8E3DC' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={item.preview} alt={`Item ${i + 1}`} className="w-full h-full object-cover" />
               {item.status === 'approved' && (
@@ -877,23 +804,17 @@ export default function BatchReviewPage() {
         </div>
       </div>
 
-      {/* Desktop: sidebar + content */}
-      <div className="flex" style={{ minHeight: 'calc(100vh - 57px)' }}>
+      {/* ── 3-column desktop layout ── */}
+      <div className="hidden lg:grid lg:grid-cols-[220px_1fr_380px]" style={{ height: 'calc(100vh - 57px)' }}>
 
-        {/* Sidebar — desktop only */}
-        <aside className="hidden lg:flex flex-col border-r border-line bg-card sticky top-[57px] overflow-y-auto flex-shrink-0" style={{ width: 260, height: 'calc(100vh - 57px)' }}>
+        {/* LEFT — item queue */}
+        <aside className="flex flex-col border-r border-line bg-card overflow-y-auto">
           <div className="p-4 flex flex-col gap-2">
             <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">{items.length} photo{items.length !== 1 ? 's' : ''}</p>
             {items.map((item, i) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveIndex(i)}
+              <button key={item.id} onClick={() => setActiveIndex(i)}
                 className="flex items-center gap-3 rounded-xl p-2.5 text-left transition-all border-2"
-                style={{
-                  borderColor: i === activeIndex ? '#00C47A' : 'transparent',
-                  background: i === activeIndex ? '#F0FDF4' : 'transparent',
-                }}
-              >
+                style={{ borderColor: i === activeIndex ? '#00C47A' : 'transparent', background: i === activeIndex ? '#F0FDF4' : 'transparent' }}>
                 <div className="relative flex-shrink-0 rounded-lg overflow-hidden" style={{ width: 44, height: 44 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.preview} alt={`Item ${i + 1}`} className="w-full h-full object-cover" />
@@ -912,52 +833,42 @@ export default function BatchReviewPage() {
           </div>
         </aside>
 
-        {/* Review workspace */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-xl mx-auto px-4 py-5 flex flex-col gap-4" style={{ paddingBottom: '6rem' }}>
-
-            {/* Item nav */}
+        {/* CENTER — photo + editable fields */}
+        <main className="overflow-y-auto border-r border-line">
+          <div className="px-5 py-5 flex flex-col gap-4" style={{ paddingBottom: '6rem' }}>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted">Photo {activeIndex + 1} of {items.length}</span>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveIndex(i => Math.max(0, i - 1))}
-                  disabled={activeIndex === 0}
-                  className="px-3 rounded-lg border border-line text-sm text-muted hover:text-ink hover:border-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  style={{ minHeight: 34 }}
-                >← Prev</button>
-                <button
-                  onClick={() => setActiveIndex(i => Math.min(items.length - 1, i + 1))}
-                  disabled={activeIndex === items.length - 1}
-                  className="px-3 rounded-lg border border-line text-sm text-muted hover:text-ink hover:border-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  style={{ minHeight: 34 }}
-                >Next →</button>
+                <button onClick={() => setActiveIndex(i => Math.max(0, i - 1))} disabled={activeIndex === 0}
+                  className="px-3 rounded-lg border border-line text-sm text-muted hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ minHeight: 32 }}>← Prev</button>
+                <button onClick={() => setActiveIndex(i => Math.min(items.length - 1, i + 1))} disabled={activeIndex === items.length - 1}
+                  className="px-3 rounded-lg border border-line text-sm text-muted hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ minHeight: 32 }}>Next →</button>
               </div>
             </div>
-
             <ReviewForm key={activeItem.id} item={activeItem} onChange={updateField} />
           </div>
         </main>
+
+        {/* RIGHT — platform tabbed editor */}
+        <aside className="flex flex-col overflow-hidden">
+          <PlatformEditor key={activeItem.id} item={activeItem} platforms={platforms} onChange={updateField} />
+        </aside>
       </div>
 
-      {/* Sticky bottom bar */}
+      {/* Mobile: single-column content */}
+      <div className="lg:hidden flex flex-col" style={{ paddingBottom: '5rem' }}>
+        <div className="px-4 py-4 flex flex-col gap-4">
+          <ReviewForm key={activeItem.id} item={activeItem} onChange={updateField} />
+          <PlatformEditor key={`m-${activeItem.id}`} item={activeItem} platforms={platforms} onChange={updateField} />
+        </div>
+      </div>
+
+      {/* Sticky bottom bar — approve button only */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-card border-t border-line px-4 py-3">
-        <div className="max-w-xl mx-auto flex items-center gap-3">
-          <div className="flex-1 hidden sm:block">
-            <p className="text-xs text-muted">Press <kbd className="px-1.5 py-0.5 rounded border border-line text-xs">Space</kbd> to approve and advance</p>
-          </div>
-          <button
-            onClick={approveAndNext}
-            disabled={activeItem.status !== 'ready'}
-            className="sm:flex-none flex-1 rounded-xl font-semibold transition-all"
-            style={{
-              minHeight: 52,
-              background: activeItem.status === 'approved' ? '#E8E3DC' : '#00C47A',
-              color: activeItem.status === 'approved' ? '#8A7F72' : '#FFFFFF',
-              cursor: activeItem.status !== 'ready' ? 'default' : 'pointer',
-              padding: '0 24px',
-            }}
-          >
+        <div className="flex justify-end max-w-none">
+          <button onClick={approveAndNext} disabled={activeItem.status !== 'ready'}
+            className="rounded-xl font-semibold transition-all"
+            style={{ minHeight: 48, background: activeItem.status === 'approved' ? '#E8E3DC' : '#00C47A', color: activeItem.status === 'approved' ? '#8A7F72' : '#FFFFFF', cursor: activeItem.status !== 'ready' ? 'default' : 'pointer', padding: '0 32px' }}>
             {activeItem.status === 'approved' ? '✓ Approved' : activeIndex === items.length - 1 ? 'Approve & finish' : 'Approve & next →'}
           </button>
         </div>
