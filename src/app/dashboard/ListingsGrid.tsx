@@ -19,7 +19,7 @@ interface Props {
   soldSection?: boolean
 }
 
-const FREE_VISIBLE = 3
+const FREE_VISIBLE = 5
 
 const PLATFORM_META: Record<string, { label: string; color: string }> = {
   ebay:          { label: 'eBay',          color: '#E53238' },
@@ -87,12 +87,24 @@ export default function ListingsGrid({ listings, plan, soldSection = false }: Pr
             className="relative bg-card border border-line rounded-2xl overflow-hidden transition-all hover:shadow-sm"
             style={{
               cursor: locked ? 'default' : 'pointer',
-              filter: locked ? 'blur(3px)' : 'none',
-              userSelect: locked ? 'none' : 'auto',
               borderLeft: `4px solid ${sold ? '#D1FAE5' : platformColor}`,
             }}
           >
-            <div className="flex items-center gap-4 p-4">
+            {/* Locked overlay */}
+            {locked && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl"
+                style={{ backdropFilter: 'blur(6px)', background: 'rgba(247,244,239,0.75)' }}>
+                <button
+                  onClick={e => { e.stopPropagation(); router.push('/pricing') }}
+                  className="flex items-center gap-1.5 rounded-xl font-semibold text-white text-xs px-4"
+                  style={{ minHeight: 36, background: '#00C47A' }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Upgrade to unlock
+                </button>
+              </div>
+            )}
+            <div className="flex items-center gap-4 p-4" style={{ filter: locked ? 'blur(2px)' : 'none', userSelect: locked ? 'none' : 'auto' }}>
               {/* Thumbnail */}
               <div
                 className="flex-shrink-0 rounded-xl overflow-hidden bg-page border border-line"

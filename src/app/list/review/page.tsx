@@ -225,6 +225,8 @@ function ReviewPageInner() {
     setSaving(true)
     try {
       const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return null
       let image_url: string | null = null
       if (previewUrl && previewUrl.startsWith('data:')) {
         try {
@@ -244,7 +246,7 @@ function ReviewPageInner() {
       } else if (previewUrl?.startsWith('http')) {
         image_url = previewUrl
       }
-      const payload = { listing_data: listing, platforms, title: overrideTitle ?? title, image_url, status: 'draft' }
+      const payload = { listing_data: listing, platforms, title: overrideTitle ?? title, image_url, status: 'draft', user_id: user.id }
       let id: string | null = null
       if (savedId) {
         const { data } = await supabase.from('listings').update(payload).eq('id', savedId).select('id').single()

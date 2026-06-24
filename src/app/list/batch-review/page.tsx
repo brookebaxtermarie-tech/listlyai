@@ -681,6 +681,8 @@ export default function BatchReviewPage() {
     saveStarted.current = true
     setSaving(true)
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setSaving(false); return }
     let count = 0
     for (const item of approvedItems) {
       try {
@@ -697,7 +699,7 @@ export default function BatchReviewPage() {
             }
           } catch { /* non-fatal */ }
         }
-        await supabase.from('listings').insert({ listing_data: item.listing, platforms, title: item.title, image_url, status: 'draft' })
+        await supabase.from('listings').insert({ listing_data: item.listing, platforms, title: item.title, image_url, status: 'draft', user_id: user.id })
         count++
       } catch { /* skip failed item */ }
     }
