@@ -687,12 +687,22 @@ export default function BatchReviewPage() {
     for (const item of approvedItems) {
       try {
         let image_url: string | null = null
-        if (item.preview.startsWith('blob:')) {
+        if (item.preview.startsWith('blob:') || item.preview.startsWith('data:')) {
           try {
-            const res = await fetch(item.preview)
-            const blob = await res.blob()
-            const ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg'
-            const { data: up } = await supabase.storage.from('listing-images').upload(`${crypto.randomUUID()}.${ext}`, blob, { contentType: blob.type })
+            let blob: Blob
+            if (item.preview.startsWith('blob:')) {
+              blob = await fetch(item.preview).then(r => r.blob())
+            } else {
+              const [meta, b64] = item.preview.split(',')
+              const mimeType = meta.split(';')[0].split(':')[1]
+              const bytes = atob(b64)
+              const arr = new Uint8Array(bytes.length)
+              for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j)
+              blob = new Blob([arr], { type: mimeType })
+            }
+            const mimeType = blob.type || 'image/jpeg'
+            const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg'
+            const { data: up } = await supabase.storage.from('listing-images').upload(`${crypto.randomUUID()}.${ext}`, blob, { contentType: mimeType })
             if (up) {
               const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(up.path)
               image_url = urlData.publicUrl

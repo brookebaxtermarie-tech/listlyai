@@ -328,7 +328,13 @@ function ListPageInner() {
       const listing = await res.json()
       sessionStorage.setItem('listai_listing', JSON.stringify(listing))
       sessionStorage.setItem('listai_platforms', JSON.stringify(platforms))
-      sessionStorage.setItem('listai_preview', preview)
+      // Store as data URL so it survives navigation and can be uploaded to storage
+      const dataUrl = await new Promise<string>(resolve => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.readAsDataURL(file)
+      })
+      sessionStorage.setItem('listai_preview', dataUrl)
       pushHistory(pendingThumb, pendingName ?? file.name.replace(/\.[^.]+$/, ''))
       router.push('/list/review')
     } catch {
@@ -398,9 +404,20 @@ function ListPageInner() {
       })
     )
 
+    // Convert blob URLs to data URLs so they survive navigation and can be uploaded to storage
+    const dataUrls = await Promise.all(
+      batchPreviews.map(blobUrl => new Promise<string>(resolve => {
+        const reader = new FileReader()
+        fetch(blobUrl).then(r => r.blob()).then(blob => {
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(blob)
+        }).catch(() => resolve(blobUrl))
+      }))
+    )
+
     const batchResults: BatchResult[] = results.map((r, i) => ({
       id: crypto.randomUUID(),
-      preview: batchPreviews[i],
+      preview: dataUrls[i] ?? batchPreviews[i],
       listing: r.status === 'fulfilled' ? r.value.listing : null,
       status: r.status === 'fulfilled' ? 'ready' : 'failed',
       error: r.status === 'rejected' ? String((r as PromiseRejectedResult).reason) : undefined,

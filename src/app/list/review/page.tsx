@@ -228,14 +228,20 @@ function ReviewPageInner() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return null
       let image_url: string | null = null
-      if (previewUrl && previewUrl.startsWith('data:')) {
+      if (previewUrl && (previewUrl.startsWith('data:') || previewUrl.startsWith('blob:'))) {
         try {
-          const [meta, base64Data] = previewUrl.split(',')
-          const mimeType = meta.split(';')[0].split(':')[1]
-          const byteCharacters = atob(base64Data)
-          const byteArray = new Uint8Array(byteCharacters.length)
-          for (let i = 0; i < byteCharacters.length; i++) byteArray[i] = byteCharacters.charCodeAt(i)
-          const blob = new Blob([byteArray], { type: mimeType })
+          let blob: Blob
+          if (previewUrl.startsWith('blob:')) {
+            blob = await fetch(previewUrl).then(r => r.blob())
+          } else {
+            const [meta, base64Data] = previewUrl.split(',')
+            const mimeType = meta.split(';')[0].split(':')[1]
+            const byteCharacters = atob(base64Data)
+            const byteArray = new Uint8Array(byteCharacters.length)
+            for (let i = 0; i < byteCharacters.length; i++) byteArray[i] = byteCharacters.charCodeAt(i)
+            blob = new Blob([byteArray], { type: mimeType })
+          }
+          const mimeType = blob.type || 'image/jpeg'
           const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg'
           const { data: uploadData } = await supabase.storage.from('listing-images').upload(`${crypto.randomUUID()}.${ext}`, blob, { contentType: mimeType })
           if (uploadData) {
