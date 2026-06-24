@@ -10,8 +10,8 @@ type Plan = 'FREE' | 'PRO' | 'POWER'
 const STEPS = [
   {
     num: 1,
-    title: 'Add to Chrome',
-    desc: 'Click the button below to install the Listly AI extension from the Chrome Web Store. Takes about 10 seconds.',
+    title: 'Install the extension',
+    desc: 'Download the extension zip, unzip it, then load it into Chrome. Full instructions below.',
   },
   {
     num: 2,
@@ -203,20 +203,29 @@ export default function ExtensionPage() {
                       <p className="font-semibold text-sm text-ink mb-1">{step.title}</p>
                       <p className="text-xs text-muted leading-relaxed">{step.desc}</p>
 
-                      {/* Step 1 — Chrome install button */}
+                      {/* Step 1 — Manual install instructions */}
                       {step.num === 1 && (
-                        <a
-                          href="https://chrome.google.com/webstore"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-white text-xs font-semibold"
-                          style={{ background: '#00C47A' }}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                          </svg>
-                          Add to Chrome
-                        </a>
+                        <div className="mt-3 space-y-3">
+                          <a
+                            href="https://github.com/brookebaxtermarie-tech/listlyai/archive/refs/heads/main.zip"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-xs font-semibold"
+                            style={{ background: '#00C47A' }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Download extension (ZIP)
+                          </a>
+                          <ol className="space-y-1.5 text-xs text-muted leading-relaxed list-none">
+                            <li className="flex gap-2"><span className="font-semibold text-ink">1.</span> Unzip the downloaded file — find the <code className="bg-[#F3F4F6] px-1 py-0.5 rounded text-ink">extension/</code> folder inside</li>
+                            <li className="flex gap-2"><span className="font-semibold text-ink">2.</span> Open Chrome and go to <code className="bg-[#F3F4F6] px-1 py-0.5 rounded text-ink">chrome://extensions</code></li>
+                            <li className="flex gap-2"><span className="font-semibold text-ink">3.</span> Toggle <strong className="text-ink">Developer mode</strong> on (top right corner)</li>
+                            <li className="flex gap-2"><span className="font-semibold text-ink">4.</span> Click <strong className="text-ink">Load unpacked</strong> and select the <code className="bg-[#F3F4F6] px-1 py-0.5 rounded text-ink">extension/</code> folder</li>
+                            <li className="flex gap-2"><span className="font-semibold text-ink">5.</span> The Listly AI icon will appear in your Chrome toolbar</li>
+                          </ol>
+                        </div>
                       )}
 
                       {/* Step 2 — API key generator */}
