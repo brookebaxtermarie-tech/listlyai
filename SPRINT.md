@@ -13,12 +13,22 @@
 - [ ] **Register Stripe webhook** — in Stripe dashboard, endpoint: `https://listai-photo.vercel.app/api/stripe/webhook`, events: `checkout.session.completed` + `customer.subscription.deleted`
 - [ ] **Mobile test** — real iPhone + Android, check all touch targets ≥44px
 
+## Legal & GDPR ✅ Complete — June 24, 2026
+
+- [x] Privacy Policy — `/privacy`, GDPR-compliant, Belgium jurisdiction, all processors disclosed
+- [x] Terms of Service — `/terms`, subscriptions, AI disclaimer, platform trademark disclaimer
+- [x] Signup consent — ToS + PP links under signup button
+- [x] Account deletion — `DELETE /api/user/delete` + two-step UI in dashboard
+- [x] Storage bucket private — RLS policies, images scoped to `{user_id}/`, signed URLs
+- [x] Power plan "coming soon" label on unbuilt direct-publish feature
+- [ ] Anthropic ZDR — contact Anthropic support to enable Zero Data Retention
+
 ## Nice-to-have before launch
 
 - [ ] Client-side image compression (<800KB before upload)
 - [ ] Custom 404 page
 - [ ] SEO: OG image + meta descriptions
-- [ ] GDPR: cookie banner + privacy policy link
+- [ ] Cookie banner (needed once PostHog added, not before)
 
 ## Post-launch
 
