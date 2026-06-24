@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import AppShell, { PlatformLogo } from '@/components/AppShell'
+import AppShell, { PlatformLogo, SidebarQueue } from '@/components/AppShell'
 import { Suspense } from 'react'
 
 type Plan = 'FREE' | 'PRO' | 'POWER'
@@ -384,9 +384,31 @@ function ListPageInner() {
 
   const isPro = plan === 'PRO' || plan === 'POWER'
 
+  // Build queue items for the sidebar
+  const queueItems = batchMode
+    ? batchFiles.map((f, i) => ({
+        id: String(i),
+        preview: batchPreviews[i] ?? null,
+        name: f.name.replace(/\.[^.]+$/, ''),
+        status: (loading && batchProgress && i < batchProgress.done ? 'done'
+          : loading && batchProgress && i === batchProgress.done ? 'processing'
+          : loading ? 'waiting'
+          : 'waiting') as 'waiting' | 'processing' | 'done' | 'failed',
+      }))
+    : file
+    ? [{ id: '0', preview, name: file.name.replace(/\.[^.]+$/, ''), status: (loading ? 'processing' : 'waiting') as 'waiting' | 'processing' | 'done' | 'failed' }]
+    : []
+
+  const queueSlot = (
+    <SidebarQueue
+      items={queueItems}
+      onAdd={() => batchMode ? batchInputRef.current?.click() : fileInputRef.current?.click()}
+    />
+  )
+
   return (
-    <AppShell>
-    <div className="min-h-screen bg-page pb-16 md:pb-0">
+    <AppShell queueSlot={queueSlot}>
+    <div className="flex flex-col bg-page" style={{ minHeight: '100dvh' }}>
       <header className="bg-card border-b border-line sticky top-0 z-20">
         <div className="px-4 md:px-8 flex items-center" style={{ minHeight: 57 }}>
           {/* Left — page title */}
@@ -416,9 +438,9 @@ function ListPageInner() {
         </div>
       )}
 
-      <main className="px-4 md:px-8 py-6 md:py-8 max-w-5xl mx-auto">
-        {/* Two-column desktop layout */}
-        <div className="md:grid md:grid-cols-2 md:gap-8 flex flex-col gap-8">
+      <main className="flex-1 flex flex-col px-6 md:px-10 py-6 md:py-8">
+        {/* Two-column desktop layout — fills available height */}
+        <div className="flex-1 md:grid md:grid-cols-2 md:gap-8 flex flex-col gap-6" style={{ minHeight: 0 }}>
 
         {/* Hidden file inputs */}
         <input
@@ -507,7 +529,7 @@ function ListPageInner() {
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="sm:hidden relative rounded-2xl bg-card cursor-pointer overflow-hidden"
-                  style={{ minHeight: 260 }}
+                  style={{ minHeight: 420 }}
                 >
                   {preview ? (
                     <img src={preview} alt="Selected photo" className="w-full object-contain bg-page" style={{ maxHeight: 400 }} />
@@ -538,7 +560,7 @@ function ListPageInner() {
                       ? 'border-line'
                       : 'border-line bg-card hover:border-accent/60',
                   ].join(' ')}
-                  style={{ minHeight: 260 }}
+                  style={{ minHeight: 420 }}
                 >
                   {preview ? (
                     <img src={preview} alt="Selected photo" className="w-full object-contain bg-page" style={{ maxHeight: 400 }} />
@@ -638,7 +660,7 @@ function ListPageInner() {
                   <button
                     onClick={() => batchInputRef.current?.click()}
                     className="rounded-2xl border-2 border-dashed border-line bg-card hover:border-muted transition-colors flex flex-col items-center justify-center gap-3 text-muted"
-                    style={{ minHeight: 200 }}
+                    style={{ minHeight: 420 }}
                   >
                     <div className="w-14 h-14 rounded-full bg-line flex items-center justify-center">
                       <ImagesIcon />
