@@ -360,14 +360,27 @@ export function PlatformLogo({ id, type = 'icon', size = 24 }: { id: string; typ
       </span>
     )
   }
+  if (type === 'logo') {
+    // Logos are wide wordmarks — fix the height and let width breathe
+    return (
+      <Image
+        src={meta.logo}
+        alt={id}
+        width={size * 4}
+        height={size}
+        className="object-contain object-left flex-shrink-0"
+        style={{ maxHeight: size, width: 'auto' }}
+      />
+    )
+  }
   return (
     <Image
-      src={type === 'logo' ? meta.logo : meta.icon}
+      src={meta.icon}
       alt={id}
       width={size}
       height={size}
       className="object-contain flex-shrink-0"
-      style={{ borderRadius: type === 'icon' ? '6px' : 0 }}
+      style={{ borderRadius: '6px' }}
     />
   )
 }

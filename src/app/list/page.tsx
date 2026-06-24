@@ -781,8 +781,8 @@ function ListPageInner() {
                         background: active ? `${p.color}08` : '#FFFFFF',
                       }}
                     >
-                      <div className="flex items-center justify-between">
-                        <PlatformLogo id={p.id} type="icon" size={28} />
+                      <div className="flex items-center justify-between gap-2">
+                        <PlatformLogo id={p.id} type="logo" size={18} />
                         <span
                           className="w-9 h-5 rounded-full flex items-center flex-shrink-0"
                           style={{ background: active ? p.color : '#E5E7EB', padding: '2px', transition: 'background 0.2s' }}
@@ -793,7 +793,6 @@ function ListPageInner() {
                           />
                         </span>
                       </div>
-                      <span className="text-xs font-semibold text-ink">{p.label}</span>
                     </button>
                   )
                 })}

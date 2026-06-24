@@ -549,10 +549,10 @@ function PlatformEditor({ item, platforms, onChange }: {
           const tabSub = limit === null ? 'No title' : `${item.title.length} / ${limit}`
           return (
             <button key={p.id} onClick={() => setActivePlatform(p.id)}
-              className="flex flex-col items-start px-3 py-2.5 flex-shrink-0 border-b-2 transition-all"
-              style={{ borderBottomColor: isActive ? p.color : 'transparent', background: isActive ? '#FDFBF8' : 'transparent', minWidth: 80 }}>
-              <PlatformLogo id={p.id} type="icon" size={20} />
-              <span className="text-[10px] text-muted mt-0.5 whitespace-nowrap">{tabSub}</span>
+              className="flex flex-col items-start px-3 py-2 flex-shrink-0 border-b-2 transition-all"
+              style={{ borderBottomColor: isActive ? p.color : 'transparent', background: isActive ? '#FDFBF8' : 'transparent', minWidth: 72 }}>
+              <PlatformLogo id={p.id} type="logo" size={16} />
+              <span className="text-[10px] text-muted mt-1 whitespace-nowrap">{tabSub}</span>
             </button>
           )
         })}

@@ -735,17 +735,15 @@ function ReviewPageInner() {
                   <button
                     key={p.id}
                     onClick={() => setActivePlatform(p.id)}
-                    className="flex flex-col items-start px-3 py-2.5 flex-shrink-0 border-b-2 transition-all"
+                    className="flex flex-col items-start px-3 py-2 flex-shrink-0 border-b-2 transition-all"
                     style={{
                       borderBottomColor: isActive ? p.color : 'transparent',
                       background: isActive ? '#FDFBF8' : 'transparent',
-                      minWidth: 80,
+                      minWidth: 72,
                     }}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <PlatformLogo id={p.id} type="icon" size={20} />
-                    </div>
-                    <span className="text-[10px] text-muted mt-0.5 whitespace-nowrap">{tabSub}</span>
+                    <PlatformLogo id={p.id} type="logo" size={16} />
+                    <span className="text-[10px] text-muted mt-1 whitespace-nowrap">{tabSub}</span>
                   </button>
                 )
               })}
