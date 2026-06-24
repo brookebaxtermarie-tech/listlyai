@@ -30,7 +30,8 @@ Chill but reliable. Calm confidence.
 - Sprint 3 ✅ — Batch upload UI, pricing page, plan gating (Stripe deferred to Sprint 5)
 - Sprint 4 ✅ — Listings table, auto-save, dashboard, re-list from DB, mark sold
 - Sprint 5 ✅ — New brand (mint/charcoal), fonts, landing page, login/signup/confirm styled, Stripe wired (test keys)
-- Sprint 6 ✅ — AppShell (sidebar + bottom nav), review page 3-column layout, pricing page rebranded, password reset, upgrade success banner
+- Sprint 6 ✅ — AppShell, 3-column review, pricing rebrand, password reset, upgrade success banner
+- Jun 24 Polish ✅ — Dark sidebar, SidebarQueue, platform logos (9 platforms), channel selector grid, upload layout, review right column, header centering, field capitalization
 
 ## What's still needed before launch
 - Batch review layout: rebuild `/list/batch-review` with 3-column layout matching single review
