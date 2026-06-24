@@ -35,6 +35,14 @@ function PricingIcon({ active }: { active: boolean }) {
   )
 }
 
+function ExtensionIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={active ? '#00C47A' : '#6B7280'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
+    </svg>
+  )
+}
+
 function LogOutIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -46,9 +54,10 @@ function LogOutIcon() {
 }
 
 const NAV = [
-  { href: '/list',      Icon: UploadIcon,  label: 'New listing' },
-  { href: '/dashboard', Icon: GridIcon,    label: 'My listings' },
-  { href: '/pricing',   Icon: PricingIcon, label: 'Plans'       },
+  { href: '/list',       Icon: UploadIcon,    label: 'New listing' },
+  { href: '/dashboard',  Icon: GridIcon,      label: 'My listings' },
+  { href: '/extension',  Icon: ExtensionIcon, label: 'Extension'   },
+  { href: '/pricing',    Icon: PricingIcon,   label: 'Plans'       },
 ]
 
 const SIDEBAR_BG   = '#1A1C1E'

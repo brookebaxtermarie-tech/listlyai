@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Listly AI",
+  "version": "1.0.0",
+  "description": "Paste your Listly AI listings directly into any selling platform.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "clipboardWrite",
+    "clipboardRead"
+  ],
+  "host_permissions": [
+    "https://listlyai-photo.vercel.app/*",
+    "https://gtprjuqkdklhntgbvsbp.supabase.co/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Listly AI</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">L</div>
+        <span class="app-name">Listly AI</span>
+      </div>
+      <button id="btn-settings" class="icon-btn" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Settings screen -->
+    <div id="screen-settings" class="screen hidden">
+      <div class="screen-inner">
+        <h2 class="screen-title">Connect your account</h2>
+        <p class="screen-desc">Paste your Listly AI API key below. You can find it in your account settings at <span class="link">listlyai-photo.vercel.app/extension</span>.</p>
+        <div class="field-group">
+          <label class="field-label">API Key</label>
+          <input id="input-api-key" type="password" class="input" placeholder="listai_••••••••••••" autocomplete="off" />
+        </div>
+        <button id="btn-save-key" class="btn-primary">Save &amp; connect</button>
+        <button id="btn-remove-key" class="btn-ghost">Disconnect</button>
+      </div>
+    </div>
+
+    <!-- Not connected screen -->
+    <div id="screen-connect" class="screen hidden">
+      <div class="screen-inner centered">
+        <div class="empty-icon">🔑</div>
+        <h2 class="screen-title">Connect Listly AI</h2>
+        <p class="screen-desc">Add your API key to access your listings from any selling platform.</p>
+        <button id="btn-open-settings" class="btn-primary">Add API key</button>
+      </div>
+    </div>
+
+    <!-- Loading screen -->
+    <div id="screen-loading" class="screen hidden">
+      <div class="screen-inner centered">
+        <div class="spinner"></div>
+        <p class="screen-desc">Loading your listings…</p>
+      </div>
+    </div>
+
+    <!-- Error screen -->
+    <div id="screen-error" class="screen hidden">
+      <div class="screen-inner centered">
+        <div class="empty-icon">⚠️</div>
+        <p id="error-message" class="screen-desc"></p>
+        <button id="btn-retry" class="btn-primary">Retry</button>
+      </div>
+    </div>
+
+    <!-- No listings screen -->
+    <div id="screen-empty" class="screen hidden">
+      <div class="screen-inner centered">
+        <div class="empty-icon">📦</div>
+        <h2 class="screen-title">No listings yet</h2>
+        <p class="screen-desc">Upload a photo on Listly AI and approve a listing first.</p>
+      </div>
+    </div>
+
+    <!-- Main screen -->
+    <div id="screen-main" class="screen hidden">
+
+      <!-- Platform badge -->
+      <div class="platform-bar">
+        <div id="platform-badge" class="platform-badge">
+          <span id="platform-name">Unknown site</span>
+        </div>
+        <select id="listing-select" class="listing-select"></select>
+      </div>
+
+      <!-- Image -->
+      <div id="image-wrap" class="image-wrap hidden">
+        <img id="listing-image" class="listing-image" alt="" />
+        <button id="btn-copy-image" class="image-copy-btn" title="Copy image">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy image
+        </button>
+      </div>
+
+      <!-- Fields -->
+      <div class="fields">
+
+        <div class="field-row">
+          <div class="field-content">
+            <div class="field-label">Title</div>
+            <div id="val-title" class="field-value"></div>
+          </div>
+          <button class="copy-btn" data-target="title">Copy</button>
+        </div>
+
+        <div class="field-row">
+          <div class="field-content">
+            <div class="field-label">Price</div>
+            <div id="val-price" class="field-value"></div>
+          </div>
+          <button class="copy-btn" data-target="price">Copy</button>
+        </div>
+
+        <div class="field-row">
+          <div class="field-content">
+            <div class="field-label">Condition</div>
+            <div id="val-condition" class="field-value"></div>
+          </div>
+          <button class="copy-btn" data-target="condition">Copy</button>
+        </div>
+
+        <div class="field-row">
+          <div class="field-content">
+            <div class="field-label">Tags</div>
+            <div id="val-tags" class="field-value tags-value"></div>
+          </div>
+          <button class="copy-btn" data-target="tags">Copy</button>
+        </div>
+
+        <div class="field-row description-row">
+          <div class="field-content">
+            <div class="field-label">Description <span id="platform-label-desc" class="platform-label-inline"></span></div>
+            <div id="val-description" class="field-value description-value"></div>
+          </div>
+          <button class="copy-btn" data-target="description">Copy</button>
+        </div>
+
+      </div>
+
+      <!-- Copy all -->
+      <div class="footer">
+        <button id="btn-copy-all" class="btn-primary full-width">Copy all for <span id="copy-all-platform">this platform</span></button>
+      </div>
+
+    </div>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
