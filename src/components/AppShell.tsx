@@ -176,9 +176,9 @@ export default function AppShell({ children, queueSlot }: AppShellProps) {
           onClick={toggleExpanded}
           title={expanded ? 'Collapse' : 'Expand'}
           className="absolute top-1/2 -translate-y-1/2 -right-3 z-10 flex items-center justify-center rounded-full shadow-md transition-colors"
-          style={{ width: 24, height: 24, background: SIDEBAR_BG, border: `1px solid ${SIDEBAR_LINE}` }}
+          style={{ width: 24, height: 24, background: '#00C47A', border: 'none' }}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
           >
             <polyline points="13 17 18 12 13 7" />
@@ -220,9 +220,42 @@ interface QueueItem {
   status: 'waiting' | 'processing' | 'done' | 'failed'
 }
 
-export function SidebarQueue({ items, onAdd }: { items: QueueItem[]; onAdd?: () => void }) {
+export interface HistoryItem {
+  id: string
+  thumb: string | null
+  name: string
+  completedAt: number
+  listingId?: string
+}
+
+function QueueThumb({ src, alt }: { src: string | null; alt: string }) {
   return (
-    <div className="flex flex-col h-full py-3 gap-3">
+    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style={{ background: '#3A3C3F' }}>
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={alt} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function SidebarQueue({ items, historyItems = [], onAdd, onHistoryClick }: {
+  items: QueueItem[]
+  historyItems?: HistoryItem[]
+  onAdd?: () => void
+  onHistoryClick?: (item: HistoryItem) => void
+}) {
+  return (
+    <div className="flex flex-col h-full py-3 gap-3 overflow-y-auto">
+      {/* Active queue */}
       <div className="flex items-center justify-between px-1">
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B7280' }}>
           Queue
@@ -238,13 +271,13 @@ export function SidebarQueue({ items, onAdd }: { items: QueueItem[]; onAdd?: () 
         )}
       </div>
 
-      <div className="flex flex-col gap-2 overflow-y-auto flex-1">
+      <div className="flex flex-col gap-2">
         {items.length === 0 ? (
           <div
             className="flex flex-col items-center justify-center gap-2 rounded-xl p-4 text-center"
-            style={{ background: '#2A2C2F', minHeight: 100 }}
+            style={{ background: '#2A2C2F', minHeight: 80 }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
               <circle cx="12" cy="13" r="4" />
             </svg>
@@ -259,23 +292,7 @@ export function SidebarQueue({ items, onAdd }: { items: QueueItem[]; onAdd?: () 
               className="flex items-center gap-2 rounded-xl p-2"
               style={{ background: '#2A2C2F' }}
             >
-              {/* Thumbnail */}
-              <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style={{ background: '#3A3C3F' }}>
-                {item.preview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.preview} alt={item.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <path d="M21 15l-5-5L5 21" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Info */}
+              <QueueThumb src={item.preview} alt={item.name} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate" style={{ color: '#E5E7EB' }}>{item.name}</p>
                 <p className="text-xs mt-0.5" style={{ color: item.status === 'done' ? '#00C47A' : item.status === 'failed' ? '#EF4444' : '#6B7280' }}>
@@ -286,6 +303,33 @@ export function SidebarQueue({ items, onAdd }: { items: QueueItem[]; onAdd?: () 
           ))
         )}
       </div>
+
+      {/* History */}
+      {historyItems.length > 0 && (
+        <>
+          <div className="px-1 pt-1">
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B7280' }}>
+              History
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {historyItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => onHistoryClick?.(item)}
+                className="flex items-center gap-2 rounded-xl p-2 text-left w-full transition-colors hover:bg-[#353739]"
+                style={{ background: '#2A2C2F' }}
+              >
+                <QueueThumb src={item.thumb} alt={item.name} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate" style={{ color: '#E5E7EB' }}>{item.name}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#00C47A' }}>Completed ✓</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

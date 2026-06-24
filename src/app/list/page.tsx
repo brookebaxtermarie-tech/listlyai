@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import AppShell, { PlatformLogo, SidebarQueue } from '@/components/AppShell'
+import AppShell, { PlatformLogo, SidebarQueue, HistoryItem } from '@/components/AppShell'
 import { Suspense } from 'react'
 
 type Plan = 'FREE' | 'PRO' | 'POWER'
@@ -193,7 +193,52 @@ function ListPageInner() {
   const [error, setError] = useState<string | null>(null)
   const [rateLimited, setRateLimited] = useState(false)
 
+  // Queue history
+  const [queueHistory, setQueueHistory] = useState<HistoryItem[]>([])
+  const [pendingThumb, setPendingThumb] = useState<string | null>(null)
+  const [pendingName, setPendingName] = useState<string | null>(null)
+
+  const HISTORY_KEY = 'listai_queue_history'
+  const MAX_HISTORY = 5
+
+  function loadHistory(): HistoryItem[] {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]') } catch { return [] }
+  }
+
+  function saveHistory(items: HistoryItem[]) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, MAX_HISTORY)))
+  }
+
+  async function makeThumbnail(f: File): Promise<string> {
+    return new Promise(resolve => {
+      const img = new Image()
+      const url = URL.createObjectURL(f)
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const size = 80
+        canvas.width = size; canvas.height = size
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { URL.revokeObjectURL(url); resolve(''); return }
+        const scale = Math.max(size / img.width, size / img.height)
+        const w = img.width * scale, h = img.height * scale
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
+        URL.revokeObjectURL(url)
+        resolve(canvas.toDataURL('image/jpeg', 0.6))
+      }
+      img.onerror = () => { URL.revokeObjectURL(url); resolve('') }
+      img.src = url
+    })
+  }
+
+  function pushHistory(thumb: string | null, name: string, listingId?: string) {
+    const existing = loadHistory()
+    const entry: HistoryItem = { id: crypto.randomUUID(), thumb, name, completedAt: Date.now(), listingId }
+    saveHistory([entry, ...existing])
+    setQueueHistory([entry, ...existing].slice(0, MAX_HISTORY))
+  }
+
   useEffect(() => {
+    setQueueHistory(loadHistory())
     const client = createClient()
     client.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.replace('/login'); return }
@@ -201,6 +246,7 @@ function ListPageInner() {
       const { data } = await client.from('profiles').select('plan').eq('id', user.id).single()
       if (data?.plan) setPlan(data.plan as Plan)
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   useEffect(() => {
@@ -231,6 +277,8 @@ function ListPageInner() {
     setFile(f)
     if (preview) URL.revokeObjectURL(preview)
     setPreview(URL.createObjectURL(f))
+    setPendingName(f.name.replace(/\.[^.]+$/, ''))
+    makeThumbnail(f).then(thumb => setPendingThumb(thumb || null))
   }
 
   function handleDragOver(e: DragEvent<HTMLDivElement>) {
@@ -281,6 +329,7 @@ function ListPageInner() {
       sessionStorage.setItem('listai_listing', JSON.stringify(listing))
       sessionStorage.setItem('listai_platforms', JSON.stringify(platforms))
       sessionStorage.setItem('listai_preview', preview)
+      pushHistory(pendingThumb, pendingName ?? file.name.replace(/\.[^.]+$/, ''))
       router.push('/list/review')
     } catch {
       setError('Network error. Please check your connection and try again.')
@@ -402,7 +451,12 @@ function ListPageInner() {
   const queueSlot = (
     <SidebarQueue
       items={queueItems}
+      historyItems={queueHistory}
       onAdd={() => batchMode ? batchInputRef.current?.click() : fileInputRef.current?.click()}
+      onHistoryClick={item => {
+        if (item.listingId) router.push(`/list/review?id=${item.listingId}`)
+        else router.push('/dashboard')
+      }}
     />
   )
 

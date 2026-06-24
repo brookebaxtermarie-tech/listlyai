@@ -71,6 +71,18 @@ const PLATFORMS = [
   { id: 'allegro',       label: 'Allegro',       color: '#FF5A00' },
 ]
 
+const PLATFORM_TITLE_LIMITS: Record<string, number | null> = {
+  ebay: 80,
+  vinted: 60,
+  depop: null,
+  poshmark: 60,
+  mercari: 50,
+  leboncoin: 70,
+  wallapop: 70,
+  kleinanzeigen: 70,
+  allegro: 75,
+}
+
 function WarningIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
@@ -140,6 +152,7 @@ function ReviewPageInner() {
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [descriptions, setDescriptions] = useState<Record<string, string>>({})
+  const [platformTitles, setPlatformTitles] = useState<Record<string, string>>({})
 
   // UI state
   const [activePlatform, setActivePlatform] = useState<string | null>(null)
@@ -172,6 +185,9 @@ function ReviewPageInner() {
     setConditionChip(CONDITION_GRADE_MAP[data.condition_grade ?? ''] ?? 'Good')
     setTags(data.tags ?? [])
     setDescriptions(data.descriptions ?? {})
+    const initialTitles: Record<string, string> = {}
+    platformList.forEach(pid => { initialTitles[pid] = data.title ?? '' })
+    setPlatformTitles(initialTitles)
     setActivePlatform(platformList[0] ?? null)
     setLoadState('ready')
   }
@@ -237,7 +253,19 @@ function ReviewPageInner() {
         const { data } = await supabase.from('listings').insert(payload).select('id').single()
         id = data?.id ?? null
       }
-      if (id) { setSavedId(id); sessionStorage.setItem('listai_listing_id', id) }
+      if (id) {
+        setSavedId(id)
+        sessionStorage.setItem('listai_listing_id', id)
+        // Patch the most recent history entry with the listing ID so the sidebar links correctly
+        try {
+          const HISTORY_KEY = 'listai_queue_history'
+          const history = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]')
+          if (history.length > 0 && !history[0].listingId) {
+            history[0].listingId = id
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+          }
+        } catch { /* non-fatal */ }
+      }
       return id
     } finally { setSaving(false) }
   }, [listing, platforms, title, previewUrl, savedId])
@@ -264,7 +292,11 @@ function ReviewPageInner() {
   }
 
   async function copyPlatform(platformId: string, platformLabel: string) {
-    await navigator.clipboard.writeText(`${title}\n\n${descriptions[platformId] ?? ''}`)
+    const platformTitle = platformTitles[platformId] ?? title
+    const titleLimit = PLATFORM_TITLE_LIMITS[platformId]
+    const copyTitle = titleLimit !== null ? platformTitle : ''
+    const copyText = copyTitle ? `${copyTitle}\n\n${descriptions[platformId] ?? ''}` : (descriptions[platformId] ?? '')
+    await navigator.clipboard.writeText(copyText)
     setCopied(prev => ({ ...prev, [platformId]: true }))
     setTimeout(() => setCopied(prev => ({ ...prev, [platformId]: false })), 2000)
     showToast(`Copied — ready to paste into ${platformLabel}`)
@@ -278,7 +310,12 @@ function ReviewPageInner() {
 
   async function copyAll() {
     const selected = PLATFORMS.filter(p => platforms.includes(p.id))
-    const text = selected.map(p => `${p.label.toUpperCase()}\n${title}\n\n${descriptions[p.id] ?? ''}`).join('\n\n---\n\n')
+    const text = selected.map(p => {
+      const ptitle = platformTitles[p.id] ?? title
+      const limit = PLATFORM_TITLE_LIMITS[p.id]
+      const header = limit !== null ? `${p.label.toUpperCase()}\n${ptitle}` : p.label.toUpperCase()
+      return `${header}\n\n${descriptions[p.id] ?? ''}`
+    }).join('\n\n---\n\n')
     await navigator.clipboard.writeText(text)
     firstCopyDone.current = true
     setLastCopiedPlatform(selected[0]?.label ?? '')
@@ -580,55 +617,118 @@ function ReviewPageInner() {
           )}
         </div>
 
-        {/* ════ RIGHT COLUMN — stacked platform cards ════ */}
+        {/* ════ RIGHT COLUMN — tabbed platform editor ════ */}
         {selectedPlatforms.length > 0 && (
-          <div className="hidden lg:flex flex-col gap-0 border-l border-line lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-line bg-page">
-              <p className="text-xs font-semibold text-muted uppercase tracking-wider">Platform descriptions</p>
-              <button onClick={copyAll} className="text-xs font-medium text-muted hover:text-ink transition-colors">
-                Copy all
-              </button>
+          <div className="hidden lg:flex flex-col border-l border-line lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)]">
+            {/* Platform tabs */}
+            <div className="flex overflow-x-auto border-b border-line bg-page flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
+              {selectedPlatforms.map(p => {
+                const isActive = activePlatform === p.id
+                const limit = PLATFORM_TITLE_LIMITS[p.id]
+                const ptitle = platformTitles[p.id] ?? title
+                const tabSub = limit === null ? 'No title' : `${ptitle.length} / ${limit}`
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setActivePlatform(p.id)}
+                    className="flex flex-col items-start px-3 py-2.5 flex-shrink-0 border-b-2 transition-all"
+                    style={{
+                      borderBottomColor: isActive ? p.color : 'transparent',
+                      background: isActive ? '#FDFBF8' : 'transparent',
+                      minWidth: 80,
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <PlatformLogo id={p.id} type="logo" size={14} />
+                    </div>
+                    <span className="text-[10px] text-muted mt-0.5 whitespace-nowrap">{tabSub}</span>
+                  </button>
+                )
+              })}
             </div>
 
-            {/* Stacked display cards */}
-            <div className="flex flex-col divide-y divide-line">
-              {selectedPlatforms.map(p => (
-                <div key={p.id} className="flex flex-col" style={{ borderLeft: `3px solid ${p.color}` }}>
-                  {/* Card header */}
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <PlatformLogo id={p.id} type="logo" size={18} />
+            {/* Active platform editor */}
+            {activePlatform && (() => {
+              const p = selectedPlatforms.find(x => x.id === activePlatform)
+              if (!p) return null
+              const limit = PLATFORM_TITLE_LIMITS[p.id]
+              const ptitle = platformTitles[p.id] ?? title
+              const descVal = descriptions[p.id] ?? ''
+              const titleOver = limit !== null && ptitle.length > limit
+
+              return (
+                <div className="flex flex-col flex-1 overflow-y-auto" style={{ borderTop: `3px solid ${p.color}` }}>
+                  <div className="flex flex-col gap-4 p-4 flex-1">
+
+                    {/* Title editor */}
+                    {limit !== null && (
+                      <div className="bg-card rounded-xl border border-line p-3 flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-muted uppercase tracking-wider">Title Editor</p>
+                          <span className={`text-xs ${titleOver ? 'text-red-500' : 'text-muted'}`}>{ptitle.length}/{limit}</span>
+                        </div>
+                        <textarea
+                          value={ptitle}
+                          onChange={e => setPlatformTitles(prev => ({ ...prev, [p.id]: e.target.value }))}
+                          rows={2}
+                          className={[
+                            'w-full px-3 py-2 rounded-lg border bg-page text-ink text-sm font-medium leading-snug focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors placeholder:text-muted placeholder:font-normal resize-none',
+                            titleOver ? 'border-red-400' : 'border-line focus:border-accent',
+                          ].join(' ')}
+                          placeholder={`${p.label} title…`}
+                        />
+                        {titleOver && (
+                          <p className="text-xs text-red-500">Exceeds {limit} characters — {p.label} may truncate.</p>
+                        )}
+                        <p className="text-xs text-muted">{p.label} Title</p>
+                      </div>
+                    )}
+
+                    {/* Description editor */}
+                    <div className="bg-card rounded-xl border border-line p-3 flex flex-col gap-1.5 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-muted uppercase tracking-wider">Description Editor</p>
+                        <span className="text-xs text-muted">{descVal.length}</span>
+                      </div>
+                      <textarea
+                        value={descVal}
+                        onChange={e => setDescriptions(prev => ({ ...prev, [p.id]: e.target.value }))}
+                        className="w-full flex-1 px-3 py-2 rounded-lg border border-line bg-page text-ink text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors resize-none placeholder:text-muted"
+                        style={{ minHeight: 180 }}
+                        placeholder={`${p.label} description…`}
+                      />
+                      <p className="text-xs text-muted">{p.label} Description</p>
+                    </div>
+
+                  </div>
+
+                  {/* Copy button */}
+                  <div className="px-4 pb-4 flex-shrink-0">
                     <button
                       onClick={() => copyPlatform(p.id, p.label)}
-                      className="rounded-lg text-xs font-semibold px-3 transition-all"
+                      className="w-full rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
                       style={{
-                        minHeight: 30,
+                        minHeight: 48,
                         background: copied[p.id] ? '#D1FAE5' : p.color,
                         color: copied[p.id] ? '#065F46' : '#FFFFFF',
                       }}
                     >
-                      {copied[p.id] ? 'Copied ✓' : 'Copy'}
+                      {copied[p.id] ? (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          Copy {p.label} Details
+                        </>
+                      )}
                     </button>
                   </div>
-
-                  {/* Title preview */}
-                  {title && (
-                    <p className="px-4 pb-1 text-xs font-semibold text-ink truncate">{title}</p>
-                  )}
-
-                  {/* Description — looks like text, editable on click */}
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={e => setDescriptions(prev => ({ ...prev, [p.id]: e.currentTarget.textContent ?? '' }))}
-                    className="px-4 pb-4 pt-1 text-sm text-ink leading-relaxed focus:outline-none min-h-[80px]"
-                    style={{ whiteSpace: 'pre-wrap' }}
-                  >
-                    {descriptions[p.id] ?? ''}
-                  </div>
                 </div>
-              ))}
-            </div>
+              )
+            })()}
           </div>
         )}
 
