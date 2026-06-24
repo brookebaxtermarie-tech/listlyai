@@ -348,7 +348,7 @@ function ReviewPageInner() {
       </header>
 
       {/* ── Three-column workspace ── */}
-      <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr_320px] lg:items-start gap-0 h-full">
+      <div className="flex flex-col lg:grid lg:grid-cols-[220px_1fr_400px] lg:items-start gap-0 h-full">
 
         {/* ════ LEFT COLUMN — display only ════ */}
         <div className="lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-line p-4 flex flex-col gap-4">
@@ -580,69 +580,55 @@ function ReviewPageInner() {
           )}
         </div>
 
-        {/* ════ RIGHT COLUMN — platform tabs + active editor ════ */}
+        {/* ════ RIGHT COLUMN — stacked platform cards ════ */}
         {selectedPlatforms.length > 0 && (
-          <div className="hidden lg:flex flex-col lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)]">
-            {/* Tab strip */}
-            <div className="flex items-center gap-1 px-3 pt-3 pb-2 border-b border-line overflow-x-auto">
-              {selectedPlatforms.map(p => {
-                const isActive = activePlatform === p.id
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => setActivePlatform(p.id)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg flex-shrink-0 transition-all"
-                    style={{
-                      background: isActive ? `${p.color}12` : 'transparent',
-                      borderBottom: isActive ? `2px solid ${p.color}` : '2px solid transparent',
-                    }}
-                  >
-                    <PlatformLogo id={p.id} type="icon" size={16} />
-                    <span className="text-xs font-semibold" style={{ color: isActive ? p.color : '#6B7280' }}>
-                      {p.label}
-                    </span>
-                  </button>
-                )
-              })}
-              <button onClick={copyAll} className="ml-auto text-xs font-medium text-muted hover:text-ink transition-colors flex-shrink-0 px-2">
+          <div className="hidden lg:flex flex-col gap-0 border-l border-line lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-line bg-page">
+              <p className="text-xs font-semibold text-muted uppercase tracking-wider">Platform descriptions</p>
+              <button onClick={copyAll} className="text-xs font-medium text-muted hover:text-ink transition-colors">
                 Copy all
               </button>
             </div>
 
-            {/* Active platform editor */}
-            {activePlatform && (() => {
-              const p = selectedPlatforms.find(x => x.id === activePlatform)
-              if (!p) return null
-              return (
-                <div className="flex flex-col flex-1 overflow-hidden" style={{ borderLeft: `3px solid ${p.color}` }}>
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-line">
-                    <div className="flex items-center gap-2">
-                      <PlatformLogo id={p.id} type="logo" size={20} />
-                    </div>
+            {/* Stacked display cards */}
+            <div className="flex flex-col divide-y divide-line">
+              {selectedPlatforms.map(p => (
+                <div key={p.id} className="flex flex-col" style={{ borderLeft: `3px solid ${p.color}` }}>
+                  {/* Card header */}
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <PlatformLogo id={p.id} type="logo" size={18} />
                     <button
                       onClick={() => copyPlatform(p.id, p.label)}
-                      className="rounded-lg text-xs font-semibold px-4 transition-all"
+                      className="rounded-lg text-xs font-semibold px-3 transition-all"
                       style={{
-                        minHeight: 34,
+                        minHeight: 30,
                         background: copied[p.id] ? '#D1FAE5' : p.color,
                         color: copied[p.id] ? '#065F46' : '#FFFFFF',
                       }}
                     >
-                      {copied[p.id] ? 'Copied ✓' : 'Copy Details'}
+                      {copied[p.id] ? 'Copied ✓' : 'Copy'}
                     </button>
                   </div>
+
+                  {/* Title preview */}
                   {title && (
-                    <p className="px-4 py-2 text-xs font-medium text-muted truncate border-b border-line">{title}</p>
+                    <p className="px-4 pb-1 text-xs font-semibold text-ink truncate">{title}</p>
                   )}
-                  <textarea
-                    value={descriptions[p.id] ?? ''}
-                    onChange={e => setDescriptions(prev => ({ ...prev, [p.id]: e.target.value }))}
-                    className="flex-1 w-full px-4 py-3 bg-card text-ink text-sm leading-relaxed focus:outline-none resize-none placeholder:text-muted"
-                    placeholder={`${p.label} description…`}
-                  />
+
+                  {/* Description — looks like text, editable on click */}
+                  <div
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={e => setDescriptions(prev => ({ ...prev, [p.id]: e.currentTarget.textContent ?? '' }))}
+                    className="px-4 pb-4 pt-1 text-sm text-ink leading-relaxed focus:outline-none min-h-[80px]"
+                    style={{ whiteSpace: 'pre-wrap' }}
+                  >
+                    {descriptions[p.id] ?? ''}
+                  </div>
                 </div>
-              )
-            })()}
+              ))}
+            </div>
           </div>
         )}
 
