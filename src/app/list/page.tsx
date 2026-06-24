@@ -387,19 +387,23 @@ function ListPageInner() {
   return (
     <AppShell>
     <div className="min-h-screen bg-page pb-16 md:pb-0">
-      <header className="bg-card border-b border-line">
-        <div className="px-4 md:px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-bold text-ink text-base" style={{ fontFamily: 'var(--font-header)' }}>
+      <header className="bg-card border-b border-line sticky top-0 z-20">
+        <div className="px-4 md:px-8 flex items-center" style={{ minHeight: 57 }}>
+          {/* Left — page title */}
+          <div className="flex-1">
+            <h1 className="font-bold text-ink text-sm" style={{ fontFamily: 'var(--font-header)' }}>
               {batchMode ? 'Batch upload' : 'New listing'}
             </h1>
-            <p className="text-muted text-xs mt-0.5">Upload a photo · select platforms · analyse</p>
+            <p className="text-muted text-xs hidden md:block">Upload a photo · select platforms · analyse</p>
           </div>
-          <div className="font-mono text-xs flex items-center gap-2 text-muted">
-            <span className="text-ink font-medium">1 · Upload</span>
+          {/* Center — breadcrumb */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-muted">
+            <span className="font-semibold text-ink">1 · Upload</span>
             <span>→</span>
             <span>2 · Review</span>
           </div>
+          {/* Right — spacer to balance */}
+          <div className="flex-1" />
         </div>
       </header>
 

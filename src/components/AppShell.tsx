@@ -92,11 +92,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Desktop sidebar ───────────────────────────────────────────── */}
       <aside
-        className="hidden md:flex flex-col border-r border-line bg-card flex-shrink-0 transition-all duration-200"
+        className="hidden md:flex flex-col border-r border-line bg-card flex-shrink-0 transition-all duration-200 relative"
         style={{ width: sidebarWidth }}
       >
-        {/* Logo + expand toggle */}
-        <div className="flex items-center px-3 py-4 border-b border-line gap-3" style={{ minHeight: 57 }}>
+        {/* Logo row */}
+        <div className="flex items-center px-3 border-b border-line gap-3" style={{ minHeight: 57 }}>
           <button
             onClick={() => router.push('/list')}
             className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
@@ -109,13 +109,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               Listly AI
             </span>
           )}
-          <button
-            onClick={toggleExpanded}
-            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-page transition-colors flex-shrink-0"
-            title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            <ExpandIcon expanded={expanded} />
-          </button>
         </div>
 
         {/* Nav items */}
@@ -147,6 +140,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             )
           })}
         </div>
+
+        {/* Expand/collapse tab — sits on the right edge of the sidebar */}
+        <button
+          onClick={toggleExpanded}
+          title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          className="absolute top-1/2 -translate-y-1/2 -right-3 z-10 flex items-center justify-center bg-card border border-line rounded-full shadow-sm hover:bg-page transition-colors"
+          style={{ width: 24, height: 24 }}
+        >
+          <ExpandIcon expanded={expanded} />
+        </button>
 
         {/* Sign out */}
         <div className="p-2 border-t border-line">

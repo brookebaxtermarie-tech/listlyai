@@ -316,15 +316,24 @@ function ReviewPageInner() {
 
       {/* ── Sticky header ── */}
       <header className="bg-card border-b border-line sticky top-0 z-20">
-        <div className="px-4 md:px-6 py-3 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-sm text-muted hover:text-ink transition-colors flex items-center gap-1.5"
-            style={{ minHeight: 44 }}
-          >
-            ← My listings
-          </button>
-          <div className="flex items-center gap-4">
+        <div className="px-4 md:px-6 relative flex items-center" style={{ minHeight: 57 }}>
+          {/* Left */}
+          <div className="flex-1">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="text-sm text-muted hover:text-ink transition-colors"
+            >
+              ← My listings
+            </button>
+          </div>
+          {/* Center — breadcrumb */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-muted">
+            <span>1 · Upload</span>
+            <span>→</span>
+            <span className="font-semibold text-ink">2 · Review</span>
+          </div>
+          {/* Right — save status */}
+          <div className="flex-1 flex justify-end">
             {saving && <span className="text-xs text-muted">Saving…</span>}
             {savedId && !saving && (
               <span className="text-xs text-muted flex items-center gap-1">
@@ -334,11 +343,6 @@ function ReviewPageInner() {
                 Saved
               </span>
             )}
-            <div className="text-xs text-muted flex items-center gap-1.5">
-              <span>1 · Upload</span>
-              <span>→</span>
-              <span className="text-ink font-semibold">2 · Review</span>
-            </div>
           </div>
         </div>
       </header>
