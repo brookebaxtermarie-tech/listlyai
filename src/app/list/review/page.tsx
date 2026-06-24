@@ -60,13 +60,14 @@ const PATTERNS = [
 ]
 
 const PLATFORMS = [
-  { id: 'ebay',          label: 'eBay',          color: '#5B8DB8' },
-  { id: 'vinted',        label: 'Vinted',        color: '#4A9E8E' },
-  { id: 'depop',         label: 'Depop',         color: '#C47A7A' },
-  { id: 'leboncoin',     label: 'Leboncoin',     color: '#C49A5B' },
-  { id: 'wallapop',      label: 'Wallapop',      color: '#5B9EA8' },
-  { id: 'kleinanzeigen', label: 'Kleinanzeigen', color: '#8EA85B' },
-  { id: 'allegro',       label: 'Allegro',       color: '#C4725B' },
+  { id: 'ebay',          label: 'eBay',          color: '#E53238' },
+  { id: 'vinted',        label: 'Vinted',        color: '#007782' },
+  { id: 'depop',         label: 'Depop',         color: '#FF4040' },
+  { id: 'poshmark',      label: 'Poshmark',      color: '#C4375E' },
+  { id: 'leboncoin',     label: 'Leboncoin',     color: '#F56B2A' },
+  { id: 'wallapop',      label: 'Wallapop',      color: '#13C1AC' },
+  { id: 'kleinanzeigen', label: 'Kleinanzeigen', color: '#C4161C' },
+  { id: 'allegro',       label: 'Allegro',       color: '#FF5A00' },
 ]
 
 function WarningIcon() {

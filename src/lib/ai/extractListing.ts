@@ -397,6 +397,7 @@ function buildPass2Prompt(
         ebay: "spec-driven, keyword-first, 3-4 sentences: brand + model + condition + measurements + flaws. No personality. Max 80 char title.",
         vinted: "honest and conversational, 2-3 sentences: condition + fit + any flaws. Simple language. Max ~50 char title.",
         depop: "editorial and trend-aware, 1-2 sentences + aesthetic framing. Reference era, vibe, style. End with 3-5 hashtags. Max ~50 char title.",
+        poshmark: "friendly and descriptive, 2-3 sentences: brand + item + condition + fit notes. Mention bundle discounts. Max ~60 char title.",
         leboncoin: "practical French, 2-3 sentences: item + condition + size + measurements available. Max ~60 char title.",
         wallapop: "warm Spanish, 2-3 sentences: what it is + condition + size + inspection-friendly detail. Max ~60 char title.",
         kleinanzeigen: "direct German, 2-3 sentences: exact spec, condition, size. No vague hype. Max ~60 char title.",
@@ -501,7 +502,7 @@ export interface ListingData {
 export async function extractListing(
   imageBase64: string,
   mediaType: "image/jpeg" | "image/png" | "image/webp",
-  platforms: string[] = ["ebay", "vinted", "depop"],
+  platforms: string[] = ["ebay", "vinted", "depop", "poshmark"],
   userId: string,
   plan: Plan = "FREE"
 ): Promise<ListingData> {

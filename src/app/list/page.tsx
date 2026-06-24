@@ -17,13 +17,14 @@ interface BatchResult {
 }
 
 const PLATFORMS = [
-  { id: 'ebay', label: 'eBay', flag: '🌍' },
-  { id: 'vinted', label: 'Vinted', flag: '🌿' },
-  { id: 'depop', label: 'Depop', flag: '🛍️' },
-  { id: 'leboncoin', label: 'Leboncoin', flag: '🇫🇷' },
-  { id: 'wallapop', label: 'Wallapop', flag: '🇪🇸' },
-  { id: 'kleinanzeigen', label: 'Kleinanzeigen', flag: '🇩🇪' },
-  { id: 'allegro', label: 'Allegro', flag: '🇵🇱' },
+  { id: 'ebay',          label: 'eBay',          color: '#E53238' },
+  { id: 'vinted',        label: 'Vinted',        color: '#007782' },
+  { id: 'depop',         label: 'Depop',         color: '#FF4040' },
+  { id: 'poshmark',      label: 'Poshmark',      color: '#C4375E' },
+  { id: 'leboncoin',     label: 'Leboncoin',     color: '#F56B2A' },
+  { id: 'wallapop',      label: 'Wallapop',      color: '#13C1AC' },
+  { id: 'kleinanzeigen', label: 'Kleinanzeigen', color: '#C4161C' },
+  { id: 'allegro',       label: 'Allegro',       color: '#FF5A00' },
 ]
 
 const FREE_PLATFORM_LIMIT = 3
@@ -134,7 +135,7 @@ function LoadingSkeleton({ message }: { message?: string }) {
 function UpgradePrompt({ feature, onDismiss }: { feature: string; onDismiss: () => void }) {
   const router = useRouter()
   return (
-    <div className="rounded-2xl border bg-card p-5 flex flex-col gap-4" style={{ borderColor: '#C4A96B' }}>
+    <div className="rounded-2xl border bg-card p-5 flex flex-col gap-4" style={{ borderColor: '#00C47A' }}>
       <div className="flex flex-col gap-1">
         <span className="font-mono text-xs tracking-widest text-muted uppercase">Pro feature</span>
         <p className="font-medium text-ink text-sm leading-snug">{feature} is available on the Pro plan.</p>
@@ -144,7 +145,7 @@ function UpgradePrompt({ feature, onDismiss }: { feature: string; onDismiss: () 
         <button
           onClick={() => router.push('/pricing')}
           className="flex-1 rounded-xl text-sm font-medium transition-opacity hover:opacity-90"
-          style={{ minHeight: 44, background: '#C4A96B', color: '#FFFFFF' }}
+          style={{ minHeight: 44, background: '#00C47A', color: '#FFFFFF' }}
         >
           View plans
         </button>
@@ -476,7 +477,7 @@ function ListPageInner() {
                 {!isPro && (
                   <span
                     className="font-mono text-xs rounded-full px-2 py-0.5"
-                    style={{ background: '#C4A96B', color: '#FFFFFF', fontSize: 10 }}
+                    style={{ background: '#00C47A', color: '#FFFFFF', fontSize: 10 }}
                   >
                     PRO
                   </span>
@@ -504,7 +505,7 @@ function ListPageInner() {
                   style={{ minHeight: 260 }}
                 >
                   {preview ? (
-                    <img src={preview} alt="Selected photo" className="w-full object-cover" style={{ maxHeight: 360 }} />
+                    <img src={preview} alt="Selected photo" className="w-full object-contain bg-page" style={{ maxHeight: 400 }} />
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6">
                       <div className="w-20 h-20 rounded-full bg-line flex items-center justify-center text-muted">
@@ -535,7 +536,7 @@ function ListPageInner() {
                   style={{ minHeight: 260 }}
                 >
                   {preview ? (
-                    <img src={preview} alt="Selected photo" className="w-full object-cover" style={{ maxHeight: 360 }} />
+                    <img src={preview} alt="Selected photo" className="w-full object-contain bg-page" style={{ maxHeight: 400 }} />
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
                       <div className="w-14 h-14 rounded-full bg-line flex items-center justify-center text-muted">
@@ -654,9 +655,12 @@ function ListPageInner() {
           <div className="flex flex-col gap-5">
             {/* ── Platform selector ── */}
             <section className="flex flex-col gap-3">
-              <p className="font-semibold text-ink text-sm" style={{ fontFamily: 'var(--font-header)' }}>
-                Channel selector
-              </p>
+              <div>
+                <p className="font-semibold text-ink text-sm" style={{ fontFamily: 'var(--font-header)' }}>
+                  Where are you selling?
+                </p>
+                <p className="text-xs text-muted mt-0.5">Toggle the platforms you want listings written for</p>
+              </div>
               <div className="flex items-center justify-between">
                 <label className="font-mono text-xs tracking-widest text-muted uppercase">Platforms</label>
                 {plan === 'FREE' && (
@@ -669,11 +673,7 @@ function ListPageInner() {
                 {PLATFORMS.map(p => {
                   const active = platforms.includes(p.id)
                   const atLimit = plan === 'FREE' && !active && platforms.length >= FREE_PLATFORM_LIMIT
-                  const colors: Record<string, string> = {
-                    ebay: '#5B8DB8', vinted: '#4A9E8E', depop: '#C47A7A',
-                    leboncoin: '#C49A5B', kleinanzeigen: '#8EA85B', wallapop: '#5B9EA8', allegro: '#C4725B',
-                  }
-                  const color = colors[p.id] ?? '#6B7280'
+                  const color = p.color
                   return (
                     <button
                       key={p.id}
@@ -687,7 +687,12 @@ function ListPageInner() {
                         cursor: atLimit ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      <span className="text-base flex-shrink-0">{p.flag}</span>
+                      <span
+                        className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold"
+                        style={{ background: p.color, fontSize: 10 }}
+                      >
+                        {p.label.charAt(0)}
+                      </span>
                       <span className="text-sm font-medium text-ink flex-1">{p.label}</span>
                       {/* Toggle */}
                       <span

@@ -22,13 +22,14 @@ interface Props {
 const FREE_VISIBLE = 3
 
 const PLATFORM_META: Record<string, { label: string; color: string }> = {
-  ebay:          { label: 'eBay',          color: '#5B8DB8' },
-  vinted:        { label: 'Vinted',        color: '#4A9E8E' },
-  depop:         { label: 'Depop',         color: '#C47A7A' },
-  leboncoin:     { label: 'Leboncoin',     color: '#C49A5B' },
-  kleinanzeigen: { label: 'Kleinanzeigen', color: '#8EA85B' },
-  wallapop:      { label: 'Wallapop',      color: '#5B9EA8' },
-  allegro:       { label: 'Allegro',       color: '#C4725B' },
+  ebay:          { label: 'eBay',          color: '#E53238' },
+  vinted:        { label: 'Vinted',        color: '#007782' },
+  depop:         { label: 'Depop',         color: '#FF4040' },
+  poshmark:      { label: 'Poshmark',      color: '#C4375E' },
+  leboncoin:     { label: 'Leboncoin',     color: '#F56B2A' },
+  wallapop:      { label: 'Wallapop',      color: '#13C1AC' },
+  kleinanzeigen: { label: 'Kleinanzeigen', color: '#C4161C' },
+  allegro:       { label: 'Allegro',       color: '#FF5A00' },
 }
 
 function formatDate(iso: string) {
