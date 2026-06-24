@@ -220,7 +220,12 @@ function ReviewPageInner() {
         const { data } = await supabase.from('listings').select('*').eq('id', sourceId).single()
         if (!data) { router.replace('/list'); return }
         setSavedId(data.id as string)
-        initForm(data.listing_data as ListingData, data.platforms as string[], data.image_url as string | null)
+        let imageUrl = data.image_url as string | null
+        if (imageUrl && !imageUrl.startsWith('http')) {
+          const { data: signed } = await supabase.storage.from('listing-images').createSignedUrl(imageUrl, 3600)
+          imageUrl = signed?.signedUrl ?? null
+        }
+        initForm(data.listing_data as ListingData, data.platforms as string[], imageUrl)
       } else {
         const raw = sessionStorage.getItem('listai_listing')
         if (!raw) { setLoadState('empty'); return }
@@ -267,10 +272,9 @@ function ReviewPageInner() {
           }
           const mimeType = blob.type || 'image/jpeg'
           const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg'
-          const { data: uploadData } = await supabase.storage.from('listing-images').upload(`${crypto.randomUUID()}.${ext}`, blob, { contentType: mimeType })
+          const { data: uploadData } = await supabase.storage.from('listing-images').upload(`${user.id}/${crypto.randomUUID()}.${ext}`, blob, { contentType: mimeType })
           if (uploadData) {
-            const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(uploadData.path)
-            image_url = urlData.publicUrl
+            image_url = uploadData.path
           }
         } catch { /* non-fatal */ }
       } else if (previewUrl?.startsWith('http')) {

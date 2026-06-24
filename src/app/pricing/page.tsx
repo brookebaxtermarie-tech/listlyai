@@ -69,7 +69,7 @@ const PLANS: Plan[] = [
     ctaDisabled: false,
     features: [
       'Everything in Pro',
-      'Direct publish to eBay + Allegro',
+      'Direct publish to eBay + Allegro (Phase 2, coming soon)',
       'Unlimited listings',
       'Analytics dashboard',
       'Priority AI processing',
@@ -226,17 +226,18 @@ export default function PricingPage() {
 
         <div className="text-center flex flex-col gap-1">
           <p className="text-muted text-sm">
-            Paid plans launching soon.
-          </p>
-          <p className="text-muted text-sm">
             Questions?{' '}
             <a
-              href="mailto:hello@listai.app"
+              href="mailto:listlyai.contact@gmail.com"
               className="text-ink underline underline-offset-2"
             >
               Email us
             </a>
           </p>
+          <div className="flex items-center gap-4 justify-center mt-1">
+            <a href="/terms" className="text-xs text-muted hover:text-ink underline underline-offset-2 transition-colors">Terms of Service</a>
+            <a href="/privacy" className="text-xs text-muted hover:text-ink underline underline-offset-2 transition-colors">Privacy Policy</a>
+          </div>
         </div>
 
       </main>

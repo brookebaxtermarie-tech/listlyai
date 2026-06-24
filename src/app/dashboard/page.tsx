@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/components/AppShell'
 import ListingsGrid from './ListingsGrid'
+import DeleteAccountButton from './DeleteAccountButton'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -19,7 +20,18 @@ export default async function DashboardPage() {
   ])
 
   const plan = profile?.plan ?? 'FREE'
-  const all = listings ?? []
+
+  // Generate signed URLs for private bucket images (1 hour expiry)
+  const all = await Promise.all(
+    (listings ?? []).map(async (l) => {
+      if (!l.image_url || l.image_url.startsWith('http')) return l
+      const { data: signed } = await supabase.storage
+        .from('listing-images')
+        .createSignedUrl(l.image_url, 3600)
+      return { ...l, image_url: signed?.signedUrl ?? null }
+    })
+  )
+
   const sold = all.filter(l => l.status === 'sold')
   const active = all.filter(l => l.status !== 'sold')
 
@@ -110,6 +122,24 @@ export default async function DashboardPage() {
               </Link>
             </div>
           )}
+
+          {/* Account section */}
+          <section className="flex flex-col gap-3 pt-4 border-t border-line">
+            <h2 className="text-xs font-semibold text-muted uppercase tracking-widest">Account</h2>
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-muted">
+                Questions or data requests:{' '}
+                <a href="mailto:listlyai.contact@gmail.com" className="text-ink underline underline-offset-2">
+                  listlyai.contact@gmail.com
+                </a>
+              </p>
+              <div className="flex gap-4 text-xs text-muted mt-1">
+                <Link href="/privacy" className="hover:text-ink transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="hover:text-ink transition-colors">Terms of Service</Link>
+              </div>
+            </div>
+            <DeleteAccountButton />
+          </section>
 
         </div>
       </div>

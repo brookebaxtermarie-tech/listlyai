@@ -86,7 +86,10 @@ export default function SignupPage() {
           </button>
 
           <p className="text-xs text-muted text-center leading-relaxed">
-            Free plan includes 10 listings/month and 3 platforms. No card required.
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="text-ink underline underline-offset-2">Terms of Service</Link>
+            {' '}and{' '}
+            <Link href="/privacy" className="text-ink underline underline-offset-2">Privacy Policy</Link>.
           </p>
         </div>
 

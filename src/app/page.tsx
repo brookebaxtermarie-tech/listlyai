@@ -125,6 +125,18 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Footer */}
+      <footer className="border-t border-line">
+        <div className="max-w-5xl mx-auto px-4 py-6 flex flex-wrap items-center justify-between gap-4">
+          <span className="text-xs text-muted">© {new Date().getFullYear()} Listly AI. All platform names are property of their respective owners.</span>
+          <div className="flex items-center gap-5">
+            <Link href="/terms" className="text-xs text-muted hover:text-ink transition-colors">Terms</Link>
+            <Link href="/privacy" className="text-xs text-muted hover:text-ink transition-colors">Privacy</Link>
+            <a href="mailto:listlyai.contact@gmail.com" className="text-xs text-muted hover:text-ink transition-colors">Contact</a>
+          </div>
+        </div>
+      </footer>
+
       {/* Bottom CTA */}
       <section className="border-t border-line bg-card">
         <div className="max-w-xl mx-auto px-4 py-16 text-center flex flex-col items-center gap-5">
