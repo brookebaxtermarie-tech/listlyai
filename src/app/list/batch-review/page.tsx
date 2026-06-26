@@ -702,10 +702,9 @@ export default function BatchReviewPage() {
             }
             const mimeType = blob.type || 'image/jpeg'
             const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg'
-            const { data: up } = await supabase.storage.from('listing-images').upload(`${crypto.randomUUID()}.${ext}`, blob, { contentType: mimeType })
+            const { data: up } = await supabase.storage.from('listing-images').upload(`${user.id}/${crypto.randomUUID()}.${ext}`, blob, { contentType: mimeType })
             if (up) {
-              const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(up.path)
-              image_url = urlData.publicUrl
+              image_url = up.path
             }
           } catch { /* non-fatal */ }
         }

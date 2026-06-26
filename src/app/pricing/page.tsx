@@ -54,26 +54,6 @@ const PLANS: Plan[] = [
       '200 listings per month',
       'Full listing history',
     ],
-    notIncluded: [
-      'Direct publish to eBay / Allegro',
-      'Analytics dashboard',
-    ],
-  },
-  {
-    id: 'power',
-    name: 'Power',
-    price: '€19',
-    period: '/month',
-    description: 'For power users who want everything automated.',
-    cta: 'Upgrade to Power',
-    ctaDisabled: false,
-    features: [
-      'Everything in Pro',
-      'Direct publish to eBay + Allegro (Phase 2, coming soon)',
-      'Unlimited listings',
-      'Analytics dashboard',
-      'Priority AI processing',
-    ],
     notIncluded: [],
   },
 ]
@@ -155,7 +135,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start max-w-2xl mx-auto w-full">
           {PLANS.map(plan => (
             <div
               key={plan.id}

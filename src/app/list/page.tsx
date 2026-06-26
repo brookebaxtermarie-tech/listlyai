@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import AppShell, { PlatformLogo, SidebarQueue, HistoryItem } from '@/components/AppShell'
 import { Suspense } from 'react'
 
-type Plan = 'FREE' | 'PRO' | 'POWER'
+type Plan = 'FREE' | 'PRO'
 
 interface BatchResult {
   id: string
@@ -448,7 +448,7 @@ function ListPageInner() {
 
   if (!authChecked) return <div className="min-h-screen bg-page" />
 
-  const isPro = plan === 'PRO' || plan === 'POWER'
+  const isPro = plan === 'PRO'
 
   // Build queue items for the sidebar
   const queueItems = batchMode

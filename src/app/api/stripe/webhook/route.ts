@@ -21,8 +21,7 @@ export async function POST(req: NextRequest) {
   }
 
   const PLAN_MAP: Record<string, string> = {
-    [process.env.STRIPE_PRICE_PRO!]:   'PRO',
-    [process.env.STRIPE_PRICE_POWER!]: 'POWER',
+    [process.env.STRIPE_PRICE_PRO!]: 'PRO',
   }
 
   if (event.type === 'checkout.session.completed') {
