@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No valid platforms selected" }, { status: 400 });
   }
 
+  const ALLOWED_LANGUAGES = new Set(["en","fr","de","es","it","nl","pl","pt"]);
+  const langRaw = formData.get("language");
+  const language = typeof langRaw === "string" && ALLOWED_LANGUAGES.has(langRaw) ? langRaw : "en";
+
   if (!file) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
@@ -43,7 +47,7 @@ export async function POST(req: NextRequest) {
   const mediaType = file.type as "image/jpeg" | "image/png" | "image/webp";
 
   try {
-    const listing = await extractListing(base64, mediaType, platforms, user.id, plan);
+    const listing = await extractListing(base64, mediaType, platforms, user.id, plan, language);
     return NextResponse.json(listing);
   } catch (err: unknown) {
     const e = err as { code?: string; message?: string; retryAfterSeconds?: number }

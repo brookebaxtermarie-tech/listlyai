@@ -14,12 +14,22 @@ export async function GET(req: NextRequest) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, plan")
     .eq("extension_api_key_hash", keyHash)
     .single();
 
   if (profileError || !profile) {
     return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
+  }
+
+  // Gate on live subscription status — a cancelled Pro user must lose access
+  // even though their key still exists. Plan is the source of truth (flipped
+  // to FREE by the Stripe webhook on subscription.deleted).
+  if (profile.plan !== "PRO") {
+    return NextResponse.json(
+      { error: "Pro subscription required", code: "SUBSCRIPTION_REQUIRED" },
+      { status: 403 }
+    );
   }
 
   const { data: listings, error: listingsError } = await supabase

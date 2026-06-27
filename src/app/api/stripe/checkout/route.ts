@@ -35,6 +35,9 @@ export async function POST(req: NextRequest) {
     success_url: `${origin}/list?upgraded=1`,
     cancel_url: `${origin}/pricing`,
     metadata: { user_id: user.id, plan },
+    // Propagate user_id onto the subscription itself so the
+    // customer.subscription.deleted webhook can downgrade the right user.
+    subscription_data: { metadata: { user_id: user.id, plan } },
   })
 
   return NextResponse.json({ url: session.url })

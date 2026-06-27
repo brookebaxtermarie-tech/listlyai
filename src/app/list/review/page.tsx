@@ -458,7 +458,7 @@ function ReviewPageInner() {
   return (
     <>
     <AppShell queueSlot={queueSlot}>
-    <div className="min-h-screen bg-page pb-20 md:pb-0">
+    <div className="flex flex-col h-screen bg-page overflow-hidden">
 
       {/* ── Sticky header ── */}
       <header className="bg-card border-b border-line sticky top-0 z-20">
@@ -493,10 +493,10 @@ function ReviewPageInner() {
       </header>
 
       {/* ── Three-column workspace ── */}
-      <div className="flex flex-col lg:grid lg:grid-cols-[220px_1fr_400px] lg:items-start gap-0 h-full">
+      <div className="flex-1 overflow-hidden flex flex-col lg:grid lg:grid-cols-[220px_1fr_400px] gap-0" style={{ minHeight: 0 }}>
 
         {/* ════ LEFT COLUMN — display only ════ */}
-        <div className="lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-line p-4 flex flex-col gap-4">
+        <div className="lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-line p-4 flex flex-col gap-4">
 
           {/* Photo */}
           {previewUrl && (
@@ -540,7 +540,7 @@ function ReviewPageInner() {
         </div>
 
         {/* ════ CENTER COLUMN — all editable fields ════ */}
-        <div className="flex flex-col gap-4 p-4 lg:p-6 border-b lg:border-b-0 lg:border-r border-line">
+        <div className="flex flex-col gap-4 p-4 lg:p-6 border-b lg:border-b-0 lg:border-r border-line lg:overflow-y-auto pb-24 lg:pb-6">
 
           {/* Title */}
           <div className="bg-card rounded-xl border border-line p-4 flex flex-col gap-1">
@@ -727,7 +727,7 @@ function ReviewPageInner() {
 
         {/* ════ RIGHT COLUMN — tabbed platform editor ════ */}
         {selectedPlatforms.length > 0 && (
-          <div className="hidden lg:flex flex-col border-l border-line lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)]">
+          <div className="hidden lg:flex flex-col border-l border-line overflow-hidden">
             {/* Platform tabs */}
             <div className="flex overflow-x-auto border-b border-line bg-page flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
               {selectedPlatforms.map(p => {

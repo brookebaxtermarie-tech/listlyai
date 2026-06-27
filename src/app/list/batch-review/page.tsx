@@ -863,7 +863,7 @@ export default function BatchReviewPage() {
       </div>
 
       {/* Mobile: single-column content */}
-      <div className="lg:hidden flex flex-col" style={{ paddingBottom: '5rem' }}>
+      <div className="lg:hidden flex flex-col pb-24">
         <div className="overflow-hidden border-b border-line">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={activeItem.preview} alt="Active item" className="w-full object-cover" style={{ maxHeight: 280 }} />

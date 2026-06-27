@@ -405,10 +405,17 @@ Photo quality rules:
 // SECTION 5: PASS 2 — PRECISE EXTRACTION
 // ============================================================
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English", fr: "French", de: "German", es: "Spanish",
+  it: "Italian", nl: "Dutch", pl: "Polish", pt: "Portuguese",
+};
+
 function buildPass2Prompt(
   taxonomyBlock: string,
-  platforms: string[]
+  platforms: string[],
+  language: string = "en"
 ): string {
+  const languageName = LANGUAGE_NAMES[language] ?? "English";
   const descriptionFields = platforms
     .map((p) => {
       const rules: Record<string, string> = {
@@ -476,7 +483,9 @@ Return ONLY valid JSON, no markdown, no explanation:
     ${descriptionFields}
   },
   "overall_confidence": 0.0
-}`;
+}
+
+OUTPUT LANGUAGE: Write every "title" and every value in "descriptions" in ${languageName}. This overrides any platform-specific language hint above — the seller has chosen ${languageName} as their listing language. Keep the JSON keys and all other fields (tags, condition_grade, etc.) exactly as specified.`;
 }
 
 // ============================================================
@@ -523,7 +532,8 @@ export async function extractListing(
   mediaType: "image/jpeg" | "image/png" | "image/webp",
   platforms: string[] = ["ebay", "vinted", "depop", "poshmark"],
   userId: string,
-  plan: Plan = "FREE"
+  plan: Plan = "FREE",
+  language: string = "en"
 ): Promise<ListingData> {
   // ── Security: rate limit check ─────────────────────────────
   const rateCheck = await checkRateLimit(userId, plan);
@@ -585,7 +595,7 @@ export async function extractListing(
     : `Describe this ${gender} ${category} item as specifically as possible.`;
 
   // ── Pass 2: precise extraction ────────────────────────────
-  const pass2Prompt = buildPass2Prompt(taxonomyBlock, platforms);
+  const pass2Prompt = buildPass2Prompt(taxonomyBlock, platforms, language);
 
   const pass2 = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
